@@ -29,7 +29,11 @@ library(nnet)
 #### EM ALGORITHM WITH NEWTON-RAPHSON STEPS ##################################################
 ##############################################################################################
 ##############################################################################################
-# DESCRIPTION: This function performs one-step estimation using the EM algorithm with one Newton-Raphson step as in the R library poLCA. The code also allows for a correction (controlled by 0<alpha<1) to reduce the chance of decays in the log-likelihood sequence (McLachlan and Krishnan 2007). When alpha=1, the function performs the routine with the classical Newton-Raphson step without corrections as in Bandeen-Roche et al. (1997).
+# DESCRIPTION: This function performs one-step estimation using the EM algorithm with one 
+# Newton-Raphson step as in the R library poLCA. The code also allows for a correction 
+# (controlled by 0<alpha<1) to reduce the chance of decays in the log-likelihood sequence 
+# (McLachlan and Krishnan 2007). When alpha=1, the function performs the routine with the classical 
+# Newton-Raphson step without corrections as in Bandeen-Roche et al. (1997).
 
 # DETAILS OF THE METHODOLOGY: This type of EM is carefully discussed in Section 1.1 of the paper.
 
@@ -42,7 +46,7 @@ library(nnet)
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 #- alpha: tuning parameter to rescale the updating of beta, and reduce concerns with drops in the log-likelihood sequence.
 
-newton_em<-function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, alpha=1){
+newton_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, alpha=1){
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # CREATE USEFUL QUANTITIES (following the notation in the paper)
@@ -66,9 +70,9 @@ dll <- Inf
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # llik denotes the log-likelihood sequence
-llik<-rep(NA,maxiter)
+llik <- rep(NA,maxiter)
 # llik_decrement is a vector monitoring drops in the log-likelihood sequence.
-llik_decrement<-rep(NA,maxiter)
+llik_decrement <- rep(NA,maxiter)
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -96,9 +100,9 @@ b <- rnorm(P*(R - 1), 0, 0.1)
 #------------------------------------------------
 prior <- poLCA:::poLCA.updatePrior(b, x, R)
 
-iter<-1
-llik[iter]<-sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
-llik_decrement[iter]<-(dll < -1e-07)*1
+iter <- 1
+llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+llik_decrement[iter] <- (dll < -1e-07)*1
 
 #---------------------------------------------------------------------------------------------
 ##############################################################################################
@@ -135,12 +139,12 @@ prior <- poLCA:::poLCA.updatePrior(b, x, R)
 #----------------------------------------------
 # Log-Likelihood Sequence ---------------------
 #----------------------------------------------
-llik[iter]<-sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
 
 #----------------------------------------------
 # Decrement (0 if no decay, 1 if decay) -------
 #----------------------------------------------
-llik_decrement[iter]<-(dll < -1e-07)*1
+llik_decrement[iter] <- (dll < -1e-07)*1
 
 #--------------------------------------------------------------------------------
 # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
@@ -152,11 +156,16 @@ dll <- llik[iter] - llik[iter - 1]}
 # OUTPUT OF THE ALGORITHM
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
-# NOTE: In the paper we focus on the computational properties of the algorithms and therefore we output the number of iterations for convergence, the log-likelihood sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when providing inference on the model, also the estimates of the parameters beta (b) and the probabilities of the categorical variables y within each latent class (pi) should be given as output.
-output<-list()
-output[[1]]<-iter
-output[[2]]<-llik
-output[[3]]<-llik_decrement
+# NOTE: In the paper we focus on the computational properties of the algorithms and 
+# therefore we output the number of iterations for convergence, the log-likelihood 
+# sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when 
+# providing inference on the model, also the estimates of the parameters beta (b) and 
+# the probabilities of the categorical variables y within each latent class (pi) should 
+# be given as output.
+output <- list()
+output[[1]] <- iter
+output[[2]] <- llik
+output[[3]] <- llik_decrement
 
 return(output)
 }
@@ -172,7 +181,8 @@ return(output)
 ### NESTED EM ALGORITHM ######################################################################
 ##############################################################################################
 ##############################################################################################
-# DESCRIPTION: This function perform one-step estimation using our nested EM algorithm leveraging the Pòlya-Gamma data augmentation described in the paper.
+# DESCRIPTION: This function perform one-step estimation using our nested EM algorithm leveraging 
+# the Pòlya-Gamma data augmentation described in the paper.
 
 # DETAILS OF THE METHODOLOGY: This type of EM is carefully discussed in Section 2.2 of the paper.
 
@@ -184,7 +194,7 @@ return(output)
 #- tol: the EM algorithm stops when an additional iteration increases the log-likelihood by less than tol.
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 
-nested_em<-function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1){
+nested_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1){
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # CREATE USEFUL QUANTITIES (following the notation in the paper)
@@ -208,9 +218,9 @@ dll <- Inf
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # llik denotes the log-likelihood sequence
-llik<-rep(NA,maxiter)
+llik <- rep(NA,maxiter)
 # llik_decrement is a vector monitoring drops in the log-likelihood sequence.
-llik_decrement<-rep(NA,maxiter)
+llik_decrement <- rep(NA,maxiter)
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -238,9 +248,9 @@ b <- rnorm(P*(R - 1), 0, 0.1)
 #------------------------------------------------
 prior <- poLCA:::poLCA.updatePrior(b, x, R)
 
-iter<-1
-llik[iter]<-sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
-llik_decrement[iter]<-(dll < -1e-07)*1
+iter <- 1
+llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+llik_decrement[iter] <- (dll < -1e-07)*1
 
 #---------------------------------------------------------------------------------------------
 ##############################################################################################
@@ -297,12 +307,12 @@ prior <- poLCA:::poLCA.updatePrior(b, x, R)
 #----------------------------------------------
 # Log-Likelihood Sequence ---------------------
 #----------------------------------------------
-llik[iter]<-sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
 
 #----------------------------------------------
 # Decrement (0 if no decay, 1 if decay) -------
 #----------------------------------------------
-llik_decrement[iter]<-(dll < -1e-07)*1
+llik_decrement[iter] <- (dll < -1e-07)*1
 
 #--------------------------------------------------------------------------------
 # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
@@ -314,11 +324,16 @@ dll <- llik[iter] - llik[iter - 1]}
 # OUTPUT OF THE ALGORITHM
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
-# NOTE: In the paper we focus on the computational properties of the algorithms and therefore we output the number of iterations for convergence, the log-likelihood sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when providing inference on the model, also the estimates of the parameters beta (b) and the probabilities of the categorical variables y within each latent class (pi) should be given as output.
-output<-list()
-output[[1]]<-iter
-output[[2]]<-llik
-output[[3]]<-llik_decrement
+# NOTE: In the paper we focus on the computational properties of the algorithms and 
+# therefore we output the number of iterations for convergence, the log-likelihood 
+# sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when 
+# providing inference on the model, also the estimates of the parameters beta (b) 
+# and the probabilities of the categorical variables y within each latent class (pi) 
+# should be given as output.
+output <- list()
+output[[1]] <- iter
+output[[2]] <- llik
+output[[3]] <- llik_decrement
 
 return(output)
 }
@@ -333,7 +348,9 @@ return(output)
 ### HYBRID NESTED EM ALGORITHM ###############################################################
 ##############################################################################################
 ##############################################################################################
-# DESCRIPTION: This function performs one-step estimation using an hybrid version of the nested EM proposed in Section 2.2. In particular the routine reaches a neighborhood of the maximum using the more stable nested EM, and then switches to Newton-Raphson to speed convergence.
+# DESCRIPTION: This function performs one-step estimation using an hybrid version of the nested 
+# EM proposed in Section 2.2. In particular the routine reaches a neighborhood of the maximum 
+# using the more stable nested EM, and then switches to Newton-Raphson to speed convergence.
 
 # DETAILS OF THE METHODOLOGY: This type of EM is carefully discussed in Section 3.3 of the paper.
 
@@ -346,7 +363,7 @@ return(output)
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 #- epsilon: the nested EM switches to Newton-Raphson when an iteration increases the log-likelihood by less than epsilon.
 
-hybrid_em<-function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, epsilon=0.1){
+hybrid_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, epsilon=0.1){
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # CREATE USEFUL QUANTITIES (following the notation in the paper)
@@ -370,9 +387,9 @@ dll <- Inf
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # llik denotes the log-likelihood sequence
-llik<-rep(NA,maxiter)
+llik <- rep(NA,maxiter)
 # llik_decrement is a vector monitoring drops in the log-likelihood sequence.
-llik_decrement<-rep(NA,maxiter)
+llik_decrement <- rep(NA,maxiter)
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -400,9 +417,9 @@ b <- rnorm(P*(R - 1), 0, 0.1)
 #------------------------------------------------
 prior <- poLCA:::poLCA.updatePrior(b, x, R)
 
-iter<-1
-llik[iter]<-sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
-llik_decrement[iter]<-(dll < -1e-07)*1
+iter <- 1
+llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+llik_decrement[iter] <- (dll < -1e-07)*1
 
 #---------------------------------------------------------------------------------------------
 ##############################################################################################
@@ -430,7 +447,7 @@ vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
 # M-STEP for beta:
 # Maximize the beta coefficiens in the multinomial logit for the classes via Pòlya-Gamma or Newton-Raphson
 if (dll>epsilon) {
-	           for (j in 2:R) {
+	       for (j in 2:R) {
                #----------------------------------------------------------------------------
                # Create the matrix of the current beta coefficients
                beta <- cbind(rep(0, P), matrix(b, P, R - 1))
@@ -462,12 +479,12 @@ prior <- poLCA:::poLCA.updatePrior(b, x, R)
 #----------------------------------------------
 # Log-Likelihood Sequence ---------------------
 #----------------------------------------------
-llik[iter]<-sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
 
 #----------------------------------------------
 # Decrement (0 if no decay, 1 if decay) -------
 #----------------------------------------------
-llik_decrement[iter]<-(dll < -1e-07)*1
+llik_decrement[iter] <- (dll < -1e-07)*1
 
 #--------------------------------------------------------------------------------
 # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
@@ -479,11 +496,16 @@ dll <- llik[iter] - llik[iter - 1]}
 # OUTPUT OF THE ALGORITHM
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
-# NOTE: In the paper we focus on the computational properties of the algorithms and therefore we output the number of iterations for convergence, the log-likelihood sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when providing inference on the model, also the estimates of the parameters beta (b) and the probabilities of the categorical variables y within each latent class (pi) should be given as output.
-output<-list()
-output[[1]]<-iter
-output[[2]]<-llik
-output[[3]]<-llik_decrement
+# NOTE: In the paper we focus on the computational properties of the algorithms and 
+# therefore we output the number of iterations for convergence, the log-likelihood 
+# sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when 
+# providing inference on the model, also the estimates of the parameters beta (b) and 
+# the probabilities of the categorical variables y within each latent class (pi) 
+# should be given as output.
+output <- list()
+output[[1]] <- iter
+output[[2]] <- llik
+output[[3]] <- llik_decrement
 
 return(output)
 }
@@ -499,7 +521,10 @@ return(output)
 ### EM FOR UNCONDITIONAL LATENT CLASS MODELS #################################################
 ##############################################################################################
 ##############################################################################################
-# DESCRIPTION: EM algoritm for latent class analysis without covariates. As discussed in the paper, this EM algorithm is useful for step 1 in the three--step estimation methods. Note that, to exploit the optimized functions of the R library poLCA, we work with the log-odds reparameterization b of the unconditional class probabilities nu.
+# DESCRIPTION: EM algoritm for latent class analysis without covariates. As discussed in the paper, 
+# this EM algorithm is useful for step 1 in the three--step estimation methods. Note that, to 
+# exploit the optimized functions of the R library poLCA, we work with the log-odds reparameterization 
+# b of the unconditional class probabilities nu.
 
 # DETAILS OF THE METHODOLOGY: This type of EM is carefully discussed in step 1 of Section 1.2 in the paper.
 
@@ -511,7 +536,7 @@ return(output)
 #- tol: the EM algorithm stops when an additional iteration increases the log-likelihood by less than tol.
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 
-unconditional_em<-function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1){
+unconditional_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1){
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # CREATE USEFUL QUANTITIES (following the notation in the paper)
@@ -535,7 +560,7 @@ dll <- Inf
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # llik denotes the log-likelihood sequence
-llik<-rep(NA,maxiter)
+llik <- rep(NA,maxiter)
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -563,8 +588,8 @@ b <- rep(0, P * (R - 1))
 #------------------------------------------------
 prior <- poLCA:::poLCA.updatePrior(b, x, R)
 
-iter<-1
-llik[iter]<-sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+iter <- 1
+llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
 
 #---------------------------------------------------------------------------------------------
 ##############################################################################################
@@ -591,7 +616,7 @@ vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
 
 # M-STEP for b:
 # Maximize analytically the log-odds of the unconditional latent class probabilities
-b<-log((apply(rgivy,2,sum)/n)[2:R]/((apply(rgivy,2,sum)/n)[1]))
+b <- log((apply(rgivy,2,sum)/n)[2:R]/((apply(rgivy,2,sum)/n)[1]))
 
 prior <- poLCA:::poLCA.updatePrior(b, x, R)
 
@@ -601,7 +626,7 @@ prior <- poLCA:::poLCA.updatePrior(b, x, R)
 #----------------------------------------------
 # Log-Likelihood Sequence ---------------------
 #----------------------------------------------
-llik[iter]<-sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
 
 #--------------------------------------------------------------------------------
 # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
@@ -613,13 +638,17 @@ dll <- llik[iter] - llik[iter - 1]}
 # OUTPUT OF THE ALGORITHM
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
-# NOTE: Here we output also the parameters estimates and the conditional probabilities of the latent classes for each statistical unit at convergence since they are required at steps 2 and 3 of the three--step methods. We do not monitor instead decays in the log-likelihood sequence, since the EM for unconditional latent class models is a pure EM algorithm.
-output<-list()
-output[[1]]<-iter
-output[[2]]<-llik[iter]
-output[[3]]<-vp
-output[[4]]<-poLCA:::poLCA.postClass.C(prior, vp, y)
-output[[5]]<-prior
+# NOTE: Here we output also the parameters estimates and the conditional probabilities 
+# of the latent classes for each statistical unit at convergence since they are required 
+# at steps 2 and 3 of the three--step methods. We do not monitor instead decays in the 
+# log-likelihood sequence, since the EM for unconditional latent class models is a pure 
+# EM algorithm.
+output <- list()
+output[[1]] <- iter
+output[[2]] <- llik[iter]
+output[[3]] <- vp
+output[[4]] <- poLCA:::poLCA.postClass.C(prior, vp, y)
+output[[5]] <- prior
 
 return(output)
 }
@@ -635,7 +664,8 @@ return(output)
 ### EM FOR BIAS ADJUSTMENT IN THREE--STEP METHODS ############################################
 ##############################################################################################
 ##############################################################################################
-#DESCRIPTION: Implement the EM algorithm for the bias correction proposed by Vermunt (2010) in step 3 of the three-step estimating procedure for latent class models with covariates.
+# DESCRIPTION: Implement the EM algorithm for the bias correction proposed by Vermunt (2010) 
+# in step 3 of the three-step estimating procedure for latent class models with covariates.
 
 # DETAILS OF THE METHODOLOGY: This EM is discussed in Sections 1.2 and 4 in the paper, as well as in Vermunt (2010).
 
@@ -648,7 +678,7 @@ return(output)
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 #- classification_error: classification error table from step 2, required for bias correction.
 
-correction_em<-function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, classification_error=class_err){
+correction_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, classification_error=class_err){
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # CREATE USEFUL QUANTITIES (following the notation in the paper)
@@ -672,7 +702,7 @@ dll <- Inf
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # llik denotes the log-likelihood sequence
-llik<-rep(NA,maxiter)
+llik <- rep(NA,maxiter)
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -699,8 +729,8 @@ b <- rnorm(P*(R - 1), 0, 0.1)
 #------------------------------------------------
 prior <- poLCA:::poLCA.updatePrior(b, x, R)
 
-iter<-1
-llik[iter]<-sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+iter <- 1
+llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
 
 #---------------------------------------------------------------------------------------------
 ##############################################################################################
@@ -733,7 +763,7 @@ prior <- poLCA:::poLCA.updatePrior(b, x, R)
 #----------------------------------------------
 # Log-Likelihood Sequence ---------------------
 #----------------------------------------------
-llik[iter]<-sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
 
 #--------------------------------------------------------------------------------
 # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
@@ -745,11 +775,12 @@ dll <- llik[iter] - llik[iter - 1]}
 # OUTPUT OF THE ALGORITHM
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
-# NOTE: Here we output also the parameters estimates for b to then evaluate the full--model log-likelihood for comparison with one-step methods.
-output<-list()
-output[[1]]<-iter
-output[[2]]<-llik
-output[[3]]<-b
+# NOTE: Here we output also the parameters estimates for b to then evaluate the 
+# full--model log-likelihood for comparison with one-step methods.
+output <- list()
+output[[1]] <- iter
+output[[2]] <- llik
+output[[3]] <- b
 
 return(output)
 }
