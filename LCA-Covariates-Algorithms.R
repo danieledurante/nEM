@@ -15,7 +15,13 @@ library(poLCA)
 library(dummies)
 library(nnet)
 
-# GENERAL IMPORTANT NOTE: In the paper we fix the beta coefficients associated with the last latent class R to 0, for identifiability. The functions below, fix instead the beta coefficients associated with the first latent class r=1 to 0. We operate this choice here to be consistent with the routines in the R library poLCA (for a potential future implementation of our algorithms in this library). Since the classes are latent, the class labels are arbitrary, and are interpreted only after estimation in the light of the class-specific probabilities of the categorical variables. Therefore this operation is possible without loss of generality and interpretability.
+# GENERAL IMPORTANT NOTE: In the paper we fix the beta coefficients associated with the last 
+# latent class R to 0, for identifiability. The functions below, fix instead the beta coefficients 
+# associated with the first latent class r=1 to 0. We operate this choice here to be consistent 
+# with the routines in the R library poLCA (for a potential future implementation of our algorithms 
+# in this library). Since the classes are latent, the class labels are arbitrary, and are interpreted 
+# only after estimation in the light of the class-specific probabilities of the categorical variables. 
+# Therefore this operation is possible without loss of generality and interpretability.
 
 
 ##############################################################################################
