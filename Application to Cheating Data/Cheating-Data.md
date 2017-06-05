@@ -5,7 +5,7 @@ Daniele Durante
 Description
 -----------
 
-This tutorial implementation focuses on assessing the maximization performance, and the computational efficiency of the different algorithms for the estimation of latent class models with covariates. In particular this assessment considers the dataset `cheating` from the `R` library [`poLCA`](https://www.jstatsoft.org/article/view/v042i10).
+This tutorial implementation focuses on assessing the maximization performance and the computational efficiency of the different algorithms for the estimation of latent class models with covariates. In particular, this assessment considers the dataset `cheating` from the `R` library [`poLCA`](https://www.jstatsoft.org/article/view/v042i10).
 
 The analyses reproduce those discussed in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864), where we propose a novel **nested EM** algorithm for improved maximum likelihood estimation of latent class models with covariates.
 
@@ -56,7 +56,7 @@ Note that in the above `seed_rep` specification, some values are tuned since the
 Estimation under the different maximization routines
 ----------------------------------------------------
 
-We perform estimation of the parameters in the above latent class regression model under different computational routines (including our novel **nested EM** algorithm), and compare maximization performance along with computational efficiency.
+We perform estimation of the parameters in the above latent class model with covariates under different computational routines (including our novel **nested EM** algorithm), and compare maximization performance along with computational efficiency.
 
 Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we focus on the model with `R = 2` latent classes.
 
@@ -64,7 +64,7 @@ Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.j
 
 Here we consider the one-step EM algorithm with Newton-Raphson methods proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407), and discussed in Section 1.1 of our paper. This requires the function `newton_em()` in the source file `LCA-Covariates-Algorithms.R` we uploaded before.
 
-Let us first create the quantities to be monitored for each run. These include the number of iterations to reach convergence, the log-likelihood sequence, and a vector monitoring presence (1) or absence (0) of drops in the log-likelihood sequence.
+Let us first create the quantities to be monitored for each run. These include the number of iterations to reach convergence, the log-likelihood sequence, and a vector monitoring presence (1) or absence (0) of drops in the log-likelihood sequence at each iteration.
 
 ``` r
 # Create allocation matrices for the quantities to be monitored.
@@ -177,7 +177,7 @@ x_cheating_3_step <- model.matrix(f_cheating_3_step, mframe_cheating_3_step)
 R_cheating_3_step <- nclass
 
 # Perform the three step algorithm.
-time_3_step_classical<-system.time(
+time_3_step_classical <- system.time(
   
 for (rep in 1:Rep_Tot){
 #---------------------------------------------------------------------------------------------------
@@ -228,7 +228,7 @@ x_cheating_3_step <- model.matrix(f_cheating_3_step, mframe_cheating_3_step)
 R_cheating_3_step <- nclass
 
 # Perform the three step algorithm.
-time_3_step_corrected<-system.time(
+time_3_step_corrected <- system.time(
   
 for (rep in 1:Rep_Tot){
 #---------------------------------------------------------------------------------------------------
@@ -482,7 +482,7 @@ kable(Table_Performance[,1:4])
 | Q1 N. Iterat. Converge max(Log-L) |  105.50000|   114.00000|  145.00000|   233.75000|
 | Q2 N. Iterat. Converge max(Log-L) |  114.00000|   125.50000|  152.00000|   240.50000|
 | Q3 N. Iterat. Converge max(Log-L) |  127.00000|   137.00000|  162.75000|   252.00000|
-| Averaged Time                     |    0.03442|     0.04379|    0.06242|     0.10346|
+| Averaged Time                     |    0.03696|     0.04062|    0.05586|     0.10355|
 
 The maximization performance and the computational efficiency of the three-step estimation algorithms, along with those of our **nested EM** and its hybrid modification, are instead:
 
@@ -501,7 +501,7 @@ kable(Table_Performance[,5:8])
 | Q1 N. Iterat. Converge max(Log-L) |               NA|              NA|  178.00000|  130.75000|
 | Q2 N. Iterat. Converge max(Log-L) |               NA|              NA|  184.50000|  135.50000|
 | Q3 N. Iterat. Converge max(Log-L) |               NA|              NA|  189.00000|  140.00000|
-| Averaged Time                     |         0.193810|       0.1918800|    0.09291|    0.06042|
+| Averaged Time                     |         0.205970|       0.1842300|    0.09167|    0.05819|
 
 Reproduce the left plot in Figure 2 of the paper
 ------------------------------------------------
@@ -543,4 +543,4 @@ plot <- ggplot(data = data_ggplot, aes(x = X1, y = value, group = X2)) +
 plot
 ```
 
-![](https://github.com/danieledurante/nEM/blob/master/Application%20to%20Cheating%20Data/left-plot-Figure-2.png)
+![](Cheating-Data_files/figure-markdown_github/unnamed-chunk-29-1.png)
