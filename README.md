@@ -3,4 +3,4 @@ This repository refers to the paper  [Durante, D., Canale, A. and Rigon, T. (201
 
 The repository contains the source functions `LCA-Covariates-Algorithms.R` for the implementation of the proposed **nested EM**, along with additional algorithms routinely used in the estimation of **latent class models with covariates**.
 
-##sas
+## sas
