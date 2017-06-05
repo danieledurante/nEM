@@ -7,7 +7,7 @@ Description
 
 This tutorial implementation focuses on assessing the maximization performance, and the computational efficiency of the different algorithms for the estimation of latent class models with covariates. In particular this assessment considers the dataset `cheating` from the `R` library [`poLCA`](https://www.jstatsoft.org/article/view/v042i10).
 
-The analyses reproduce those discussed in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864) where we propose a novel **nested EM** algorithm for improved maximum likelihood estimation of latent class models with covariates.
+The analyses reproduce those discussed in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864), where we propose a novel **nested EM** algorithm for improved maximum likelihood estimation of latent class models with covariates.
 
 Load the source functions and the data
 --------------------------------------
@@ -30,19 +30,19 @@ str(cheating)
     ##  $ COPYEXAM: num  1 1 1 1 1 1 1 1 1 1 ...
     ##  $ GPA     : int  NA NA NA NA 1 1 1 1 1 1 ...
 
-Since the main focus in on comparing the computational performance of the different algorithms -- instead of providing inference on the `cheating` data -- let us for simplicity remove all the statistical units having missing values.
+Since the main focus is on comparing the computational performance of the different algorithms, let us for simplicity remove all the statistical units having missing values.
 
 ``` r
 cheating <- na.omit(cheating)
 ```
 
-We aim to estimate the latent class model for the `J = 4` different cheating behaviors, having the variable `GPA` (grade point average) as a covariate in the multinomial logistic regression for the latent classes. Using the syntax of the library `poLCA`, this model can be defined as follows:
+Consistent with the analyses in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864), we focus on the latent class model for the `J = 4` different cheating behaviors, having the variable `GPA` (grade point average) as a covariate in the multinomial logistic regression for the latent classes. Using the syntax of the library `poLCA`, this model can be defined as follows:
 
 ``` r
 f_cheating <- cbind(LIEEXAM, LIEPAPER, FRAUD, COPYEXAM) ~ GPA
 ```
 
-As discussed in Section 3 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864), to provide a detailed computational assessment, we perform estimation under the different algorithms for `Rep_Tot = 100` runs at varying initializations. For each run, the algorithms are all initialized at the same starting values, which are controlled by a `seed` (changing across the different runs). Let us therefore define this 100 seeds.
+To provide a detailed computational assessment, we perform estimation under the different algorithms for `Rep_Tot = 100` runs at varying initializations. For each run, the algorithms are all initialized at the same starting values, which are controlled by a `seed` (changing across the different runs). Let us, therefore, define this 100 seeds.
 
 ``` r
 Rep_Tot <- 100
@@ -51,14 +51,14 @@ seed_rep[35] <- 1
 seed_rep[89] <- 2
 ```
 
-Note that in the above `seed_rep` specification, some values are tuned since the one-step EM algorithm incorporating Newton-Raphson methods converged to undefined log-likelihoods in some runs. Hence we changed some seeds to improve the behavior of this competing algorithm.
+Note that in the above `seed_rep` specification, some values are tuned since the one-step EM algorithm incorporating Newton-Raphson methods converged to undefined log-likelihoods in some runs. Hence, we changed some seeds to improve the behavior of this competing algorithm.
 
 Estimation under the different maximization routines
 ----------------------------------------------------
 
-We perform estimation of the parameters in the latent class regression model with covariates defined above, under different computational routines (including our novel **nested EM** algorithm) and compare maximization performance, along with computational efficiency.
+We perform estimation of the parameters in the above latent class regression model under different computational routines (including our novel **nested EM** algorithm), and compare maximization performance along with computational efficiency.
 
-Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we focus on a model with `R = 2` latent classes.
+Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we focus on the model with `R = 2` latent classes.
 
 #### 1. EM algorithm with Newton-Raphson methods (one-step maximization)
 
@@ -75,7 +75,7 @@ llik_decrement_NR_EM_alpha_1 <- matrix(0, Rep_Tot, 1000)
 # 1000 means that the maximum number of iteration of the EM we will consider is 1000. 
 ```
 
-Finally let us perform the `Rep_Tot = 100` runs of the one--step EM algorithm with Newton-Raphson methods. We also monitor the computational time via the function `system.time()`.
+Finally, let us perform the `Rep_Tot = 100` runs of the one-step EM algorithm with Newton-Raphson methods. We also monitor the computational time via the function `system.time()`.
 
 ``` r
 # Perform the algorithm.
@@ -92,7 +92,7 @@ llik_decrement_NR_EM_alpha_1[rep,] <- fit_NR_EM[[3]]}
 
 #### 2. Re-scaled EM algorithm with Newton-Raphson methods (one-step maximization)
 
-Here we consider the re-scaled version of the above one-step EM algorithm with Newton-Raphson methods. This modification is discussed in Section 1.1 of our paper and its general version can be found in Chapter 1.5.6 of [McLachlan and Krishnan (2007)](http://onlinelibrary.wiley.com/book/10.1002/9780470191613). Also this algorithm requires the function `newton_em()` in the source file `LCA-Covariates-Algorithms.R` we uploaded before. However now the parameter 0 &lt; *α* &lt; 1 should be modified to reduce concerns about drops in the log-likelihood sequence. Here we consider:
+Here we consider the re-scaled version of the above one-step EM algorithm with Newton-Raphson methods. This modification is discussed in Section 1.1 of our paper, and its general version can be found in Chapter 1.5.6 of [McLachlan and Krishnan (2007)](http://onlinelibrary.wiley.com/book/10.1002/9780470191613). Also this algorithm requires the function `newton_em()` in the source file `LCA-Covariates-Algorithms.R` we uploaded before. However, now the parameter 0 &lt; *α* &lt; 1 should be modified to reduce concerns about drops in the log-likelihood sequence. Here we consider:
 
 -   The case *α* = 0.75.
 
@@ -156,7 +156,7 @@ llik_decrement_NR_EM_alpha_0.25[rep,] <- fit_NR_EM[[3]]}
 
 #### 3. Classical 3-step algorithm (three-step maximization)
 
-Here we consider the classical three-step strategy to estimate latent class models with covariates (e.g. [Clogg 1995](https://www.iser.essex.ac.uk/research/publications/494549)). As discussed in Section 1.2 of our paper, this algorithm consists of the following three steps.
+Here we consider the classical three-step strategy to estimate latent class models with covariates (e.g. [Clogg 1995](https://www.iser.essex.ac.uk/research/publications/494549)). As discussed in Section 1.2 of our paper, this algorithm consists of three steps.
 
 1.  Estimate a latent class model without covariates `f_cheating_unconditional <- cbind(LIEEXAM, LIEPAPER, FRAUD, COPYEXAM) ~ 1`. This requires the function `unconditional_em()` (in `LCA-Covariates-Algorithms.R`).
 2.  Using the estimates in 1, predict the latent classes *s*<sub>*i*</sub>, *i* = 1, ..., *n*, by assigning each unit *i* to the class *r* with the highest predicted probability.
@@ -311,20 +311,20 @@ llik_decrement_HYB[rep,] <- fit_HYB[[3]]}
 
 ### Performance comparison
 
-Once the parameters have been estimated under the computational routines implemented above, we compare the maximization performance, and the computational efficiency of the different algorithms, in order to reproduce the results in Table 1 of our paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). In particular, we consider the following quantities, computed for each run of every routine.
+Once the parameters have been estimated under the computational routines implemented above, we compare the maximization performance and the computational efficiency of the different algorithms, in order to reproduce the results in Table 1 of our paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). In particular, we consider the following quantities, computed for each run of every routine:
 
 **Maximization Performance**
 
 -   Number of runs with a drop in the log-likelihood sequence.
 -   Number of runs converging to values which are not the maximum log-likelihood.
--   For the runs reaching a local mode, we also compute the quartiles of the difference between the log-likelihood in the local modes and the maximum one.
+-   For the runs reaching a local mode, we also compute the quartiles of the difference between the log-likelihoods in the local modes and the maximum one.
 
 **Computational Efficiency**
 
 -   Number of iterations for convergence, computed only for the runs reaching the maximum log-likelihood.
 -   Averaged computational time for each run.
 
-Consistent with the above goal let us create a function which computes the measures of performance from the output of the different algorithms.
+Consistent with the above goal, let us create a function which computes the measures of performance from the output of the different algorithms.
 
 ``` r
 performance_algo <- function(max_loglik, n_rep, loglik_seq, loglik_decay, n_iter, time, delta){
@@ -370,19 +370,14 @@ return(output)
 }
 ```
 
-In reproducing the results in Table 1, let us first define the correct maximum log-likelihood `max_llik`
+In reproducing the results in Table 1, let us first define the correct maximum log-likelihood `max_llik`, and a control quantity `delta` defining the minimum deviation from `max_llik` which is indicative of a local mode.
 
 ``` r
 max_llik <- c(-429.6384)
-```
-
-and the control quantity `delta` defining the maximum deviation from `max_llik` which is indicative of a local mode.
-
-``` r
 delta <- 0.01
 ```
 
-Finally, let us create a matrix where to enter the different performance measures on the rows, and the algorithms under analysis on the columns.
+Finally, let us create a matrix `Table_Performance` which contains the performance measures for the different algorithms.
 
 ``` r
 Table_Performance <- matrix(NA,9,8)
@@ -402,8 +397,6 @@ colnames(Table_Performance) <- c("NR EM 1","NR EM 0.75","NR EM 0.5","NR EM 0.25"
 ```
 
 We can now compute the different performance measures for our algorithms.
-
-function(max\_loglik, n\_rep, loglik\_seq, loglik\_decay, n\_iter, time, delta)
 
 **1. Performance EM algorithm with Newton-Raphson methods *α* = 1 (one-step maximization)**
 
@@ -437,8 +430,7 @@ Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_alpha_0.
                                           time_NR_EM_alpha_0.25, delta)
 ```
 
-**3 Performance Classical 3-step algorithm (three-step maximization)** 
-> As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**3 Performance Classical 3-step algorithm (three-step maximization)** &gt; As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classical, 
@@ -446,8 +438,7 @@ Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classic
                                           time_3_step_classical, delta)
 ```
 
-**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** 
-> Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** &gt; Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,6] <- performance_algo(max_llik, Rep_Tot, llik_3_step_corrected, 
@@ -474,7 +465,7 @@ Analysis of the output from the table
 
 Let us finally visualize the performance table, which reproduces Table 1 in the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864).
 
-In particular, the maximization performance and the computational efficiency of the EM algorithm with one Newton-Raphson step, along with those of the re-scaled modifications are:
+In particular, the maximization performance and the computational efficiency of the EM algorithm with one Newton-Raphson step, along with those of the re-scaled modifications, are:
 
 ``` r
 library(knitr)
@@ -491,9 +482,9 @@ kable(Table_Performance[,1:4])
 | Q1 N. Iterat. Converge max(Log-L) |  105.50000|   114.00000|  145.00000|   233.75000|
 | Q2 N. Iterat. Converge max(Log-L) |  114.00000|   125.50000|  152.00000|   240.50000|
 | Q3 N. Iterat. Converge max(Log-L) |  127.00000|   137.00000|  162.75000|   252.00000|
-| Averaged Time                     |    0.02974|     0.03980|    0.05461|     0.09174|
+| Averaged Time                     |    0.03442|     0.04379|    0.06242|     0.10346|
 
-The maximization performance and the computational efficiency of the three-step estimation algorithms, along with those of our **nested EM** and its hybrid modification are instead:
+The maximization performance and the computational efficiency of the three-step estimation algorithms, along with those of our **nested EM** and its hybrid modification, are instead:
 
 ``` r
 library(knitr)
@@ -510,12 +501,12 @@ kable(Table_Performance[,5:8])
 | Q1 N. Iterat. Converge max(Log-L) |               NA|              NA|  178.00000|  130.75000|
 | Q2 N. Iterat. Converge max(Log-L) |               NA|              NA|  184.50000|  135.50000|
 | Q3 N. Iterat. Converge max(Log-L) |               NA|              NA|  189.00000|  140.00000|
-| Averaged Time                     |         0.205800|       0.1835300|    0.09079|    0.05994|
+| Averaged Time                     |         0.193810|       0.1918800|    0.09291|    0.06042|
 
 Reproduce the left plot in Figure 2 of the paper
 ------------------------------------------------
 
-We conclude the analysis by providing the code to obtain the left plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). This plot compares, for a selected run `sel <- 24`, the log-likelihood sequence obtained under our **nested EM** with the one provided by thestandard EM algorithm with Newton-Raphson methods proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407).
+We conclude the analysis by providing the code to obtain the left plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). This plot compares, for a selected run `sel <- 24`, the log-likelihood sequence obtained under our **nested EM** with the one provided by the standard EM algorithm with Newton-Raphson methods proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407).
 
 Let us first load some useful libraries and choose the run on which to focus.
 
@@ -526,7 +517,7 @@ library(reshape)
 sel <- 24
 ```
 
-We then create a dataset with two columns. The first contains the log-likelihood sequence of the **nested EM**, whereas the second comprises the one from the standard EM algorithm with Newton-Raphson methods.
+We then create a dataset `data_plot` with two columns. The first contains the log-likelihood sequence of the **nested EM**, whereas the second comprises the one from the standard EM algorithm with Newton-Raphson methods.
 
 ``` r
 data_plot <- cbind(llik_NEM[sel,],llik_NR_EM_alpha_1[sel,])
@@ -544,12 +535,12 @@ data_ggplot$app <- "CHEATING DATA"
 
 plot <- ggplot(data = data_ggplot, aes(x = X1, y = value, group = X2)) +
                geom_line(aes(linetype = as.factor(X2))) +
-               coord_cartesian(ylim = c(-800, -420),xlim = c(0, 50)) + theme_bw() +
+               coord_cartesian(ylim = c(-800, -420), xlim = c(0, 50)) + theme_bw() +
                labs(x = "iteration", y = expression(paste(l,"(", theta^{(t)}, ";",x,",",y,")"))) +
-               theme(legend.position = "none",strip.text.x = element_text(size = 11,face = "bold")) +
+               theme(legend.position = "none", strip.text.x = element_text(size = 11, face = "bold")) +
                facet_wrap(~ app)
 
 plot
 ```
 
-![](Cheating-Data_files/figure-markdown_github/unnamed-chunk-30-1.png)
+![](Cheating-Data_files/figure-markdown_github/unnamed-chunk-29-1.png)
