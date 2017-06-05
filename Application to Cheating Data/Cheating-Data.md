@@ -251,7 +251,7 @@ class_err[,r] <- (t(dummy(pred_class))%*%as.matrix(fit_unconditional[[4]][,r],
 class_err <- t(class_err)
 
 #---------------------------------------------------------------------------------------------------
-# 3] estimate the beta coefficients from the correction procedure in Vermunt (2010)
+# 3] Estimate the beta coefficients from the correction procedure in Vermunt (2010)
 #---------------------------------------------------------------------------------------------------
 f_cheating_3_step_correct <- cbind(pred_class) ~ GPA
 fit_correct <- correction_em(f_cheating_3_step_correct, cheating, seed = seed_rep[rep],
@@ -430,8 +430,7 @@ Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_alpha_0.
                                           time_NR_EM_alpha_0.25, delta)
 ```
 
-**3 Performance Classical 3-step algorithm (three-step maximization)** 
-> As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**3 Performance Classical 3-step algorithm (three-step maximization)** &gt; As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classical, 
@@ -440,8 +439,7 @@ Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classic
 Table_Performance[1,5] <- NA
 ```
 
-**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** 
-> Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** &gt; Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,6] <- performance_algo(max_llik, Rep_Tot, llik_3_step_corrected, 
@@ -486,7 +484,7 @@ kable(Table_Performance[,1:4])
 | Q1 N. Iterat. Converge max(Log-L) |  105.50000|   114.00000|  145.00000|   233.75000|
 | Q2 N. Iterat. Converge max(Log-L) |  114.00000|   125.50000|  152.00000|   240.50000|
 | Q3 N. Iterat. Converge max(Log-L) |  127.00000|   137.00000|  162.75000|   252.00000|
-| Averaged Time                     |    0.03384|     0.04266|    0.05553|     0.09210|
+| Averaged Time                     |    0.03498|     0.04259|    0.05823|     0.09877|
 
 The maximization performance and the computational efficiency of the three-step estimation algorithms, along with those of our **nested EM** and its hybrid modification, are instead:
 
@@ -497,15 +495,15 @@ kable(Table_Performance[,5:8])
 
 |                                   |  CLASSIC. 3-STEP|  CORREC. 3-STEP|  NESTED EM|  HYBRID EM|
 |-----------------------------------|----------------:|---------------:|----------:|----------:|
-| N. Decays                         |               NA|              NA|    0.00000|    0.00000|
-| N. Local Modes                    |       100.000000|     100.0000000|    0.00000|    0.00000|
-| Q1 Log-L in Local Modes           |         1.632104|       0.5393288|    0.00000|    0.00000|
-| Q2 Log-L in Local Modes           |         1.632106|       0.5393291|    0.00000|    0.00000|
-| Q3 Log-L in Local Modes           |         1.632107|       0.5393402|    0.00000|    0.00000|
-| Q1 N. Iterat. Converge max(Log-L) |               NA|              NA|  178.00000|  130.75000|
-| Q2 N. Iterat. Converge max(Log-L) |               NA|              NA|  184.50000|  135.50000|
-| Q3 N. Iterat. Converge max(Log-L) |               NA|              NA|  189.00000|  140.00000|
-| Averaged Time                     |         0.184870|       0.1805300|    0.08936|    0.05727|
+| N. Decays                         |               NA|              NA|    0.00000|     0.0000|
+| N. Local Modes                    |       100.000000|     100.0000000|    0.00000|     0.0000|
+| Q1 Log-L in Local Modes           |         1.632104|       0.5393288|    0.00000|     0.0000|
+| Q2 Log-L in Local Modes           |         1.632106|       0.5393291|    0.00000|     0.0000|
+| Q3 Log-L in Local Modes           |         1.632107|       0.5393402|    0.00000|     0.0000|
+| Q1 N. Iterat. Converge max(Log-L) |               NA|              NA|  178.00000|   130.7500|
+| Q2 N. Iterat. Converge max(Log-L) |               NA|              NA|  184.50000|   135.5000|
+| Q3 N. Iterat. Converge max(Log-L) |               NA|              NA|  189.00000|   140.0000|
+| Averaged Time                     |         0.197900|       0.1952000|    0.09945|     0.0682|
 
 Reproduce the left plot in Figure 2 of the paper
 ------------------------------------------------
@@ -547,4 +545,4 @@ plot <- ggplot(data = data_ggplot, aes(x = X1, y = value, group = X2)) +
 plot
 ```
 
-![](https://github.com/danieledurante/nEM/blob/master/Application%20to%20Cheating%20Data/left-plot-Figure-2.png)
+![](Cheating-Data_files/figure-markdown_github/unnamed-chunk-29-1.png)
