@@ -321,7 +321,7 @@ Once the parameters have been estimated under the computational routines impleme
 
 **Computational Efficiency**
 
--   Number of iterations for convergence, computed only for the runs reaching the maximum log-likelihood.
+-   Quartiles of the number of iterations for convergence, computed only for the runs reaching the maximum log-likelihood.
 -   Averaged computational time for each run.
 
 Consistent with the above goal, let us create a function which computes the measures of performance from the output of the different algorithms.
@@ -342,17 +342,16 @@ n_drops <- n_drops + (sum(loglik_decay[rep,1:n_iter[rep]]) > 0)*1}
 n_l_modes <- sum(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)
 
 #----------------------------------------------------------------------------------------------
-# Quantiles of the difference between log-likelihoods in local modes and the maximum one.
+# Quartiles of the difference between log-likelihoods in local modes and the maximum one.
 #----------------------------------------------------------------------------------------------
 any_mode <- sum((abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)*1)
 if (any_mode > 0){ 
 sel_modes <- which(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)
 diff_llik <- quantile(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)])[sel_modes])[2:4]} else {
-diff_llik <- rep(0,3)  
-}
+diff_llik <- rep(0,3)}
 
 #----------------------------------------------------------------------------------------------
-# Quantiles of the number of iterations to reach convergence to maximum log-likelihood.
+# Quartiles of the number of iterations to reach convergence to maximum log-likelihood.
 #----------------------------------------------------------------------------------------------
 sel_convergence <- which(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) <= delta)
 iter_convergence <- quantile(n_iter[sel_convergence])[2:4]
@@ -430,8 +429,7 @@ Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_alpha_0.
                                           time_NR_EM_alpha_0.25, delta)
 ```
 
-**3 Performance Classical 3-step algorithm (three-step maximization)** 
-> As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**3 Performance Classical 3-step algorithm (three-step maximization)** &gt; As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classical, 
@@ -440,8 +438,7 @@ Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classic
 Table_Performance[1,5] <- NA
 ```
 
-**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** 
-> Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** &gt; Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,6] <- performance_algo(max_llik, Rep_Tot, llik_3_step_corrected, 
@@ -486,7 +483,7 @@ kable(Table_Performance[,1:4])
 | Q1 N. Iterat. Converge max(Log-L) |  105.50000|   114.00000|  145.00000|   233.75000|
 | Q2 N. Iterat. Converge max(Log-L) |  114.00000|   125.50000|  152.00000|   240.50000|
 | Q3 N. Iterat. Converge max(Log-L) |  127.00000|   137.00000|  162.75000|   252.00000|
-| Averaged Time                     |    0.03498|     0.04259|    0.05823|     0.09877|
+| Averaged Time                     |    0.03433|     0.06335|    0.08113|     0.12192|
 
 The maximization performance and the computational efficiency of the three-step estimation algorithms, along with those of our **nested EM** and its hybrid modification, are instead:
 
@@ -505,7 +502,7 @@ kable(Table_Performance[,5:8])
 | Q1 N. Iterat. Converge max(Log-L) |               NA|              NA|  178.00000|   130.7500|
 | Q2 N. Iterat. Converge max(Log-L) |               NA|              NA|  184.50000|   135.5000|
 | Q3 N. Iterat. Converge max(Log-L) |               NA|              NA|  189.00000|   140.0000|
-| Averaged Time                     |         0.197900|       0.1952000|    0.09945|     0.0682|
+| Averaged Time                     |         0.205180|       0.1903400|    0.09408|     0.0598|
 
 Reproduce the left plot in Figure 2 of the paper
 ------------------------------------------------
@@ -547,4 +544,4 @@ plot <- ggplot(data = data_ggplot, aes(x = X1, y = value, group = X2)) +
 plot
 ```
 
-![](https://github.com/danieledurante/nEM/blob/master/Application%20to%20Cheating%20Data/left-plot-Figure-2.png)
+![](Cheating-Data-Tutorial_files/figure-markdown_github/unnamed-chunk-29-1.png)
