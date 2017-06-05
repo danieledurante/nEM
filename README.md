@@ -9,5 +9,5 @@ The repository contains the source functions [`LCA-Covariates-Algorithms.R`](htt
 
 As we carefully show in Sections 3.1 and 3.2 of the paper [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864), the **nested EM** provides substantial improvements in maximization performance, compared to current algorithms. The analyses in Sections 3.1 and 3.2 can be reproduced using the materials in the folders [`Application to Cheating Data`](https://github.com/danieledurante/nEM/tree/master/Application%20to%20Cheating%20Data) and [`Application to Election Data`](https://github.com/danieledurante/nEM/tree/master/Application%20to%20Election%20Data), respectively. In particular
 
- -sas
- -sdas
+ - sas
+ - sdas
