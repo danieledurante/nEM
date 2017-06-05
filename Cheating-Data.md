@@ -2,8 +2,7 @@ Performance assessment for the CHEATING data
 ================
 Daniele Durante
 
-### Description
-================
+## Description
 
 This tutorial implementation focuses on assessing the maximization performance, and the computational efficiency of the different algorithms for the estimation of latent class models with covariates. In particular this assessment considers the dataset `cheating` from the `R` library [`poLCA`](https://www.jstatsoft.org/article/view/v042i10).
 
