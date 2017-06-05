@@ -325,7 +325,8 @@ llik_decrement_HYB[rep,] <- fit_HYB[[3]]}
 )[3]
 ```
 
-### Performance comparison
+Performance comparison
+----------------------------------------------------
 
 Once the parameters have been estimated under the computational routines implemented above, we compare the maximization performance and the computational efficiency of the different algorithms, in order to reproduce the results in Table 2 of our paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). In particular, we consider the following quantities, computed for each run of every routine:
 
