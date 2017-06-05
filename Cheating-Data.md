@@ -16,8 +16,7 @@ The functions for the implementation of the different algorithms (including the 
 
 Let us load this source file, along with the `cheating` dataset.
 
-``` ruby
-resources :elit
+``` r
 rm(list=ls())
 source("LCA-Covariates-Algorithms.R")
 data(cheating)
