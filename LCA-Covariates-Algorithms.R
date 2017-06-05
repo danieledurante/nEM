@@ -713,7 +713,10 @@ set.seed(seed)
 #------------------------------------------------
 # Conditional Probabilities (pi) ----------------
 #------------------------------------------------
-# NOTE: These quantities are fixed during all the routine, since the EM required in step 3 of the correction procedure proposed by Vermunt (2010) has a single categorical response whose probabilities within each class coincides with the classification error probabilities computed from step 2.
+# NOTE: These quantities are fixed during all the routine, since the EM required in step 3 
+# of the correction procedure proposed by Vermunt (2010) has a single categorical response 
+# whose probabilities within each class coincides with the classification error probabilities 
+# computed from step 2.
 probs <- list()
 probs[[1]] <- classification_error
 probs.init <- probs
