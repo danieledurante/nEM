@@ -148,7 +148,7 @@ Here we consider the classical three--step strategy to estimate latent class mod
 
 1.  Estimate a latent class model without covariates. This requires the function `unconditional_em()` (in `LCA-Covariates-Algorithms.R`) applied to the model `f_cheating_unconditional <- cbind(LIEEXAM,LIEPAPER,FRAUD,COPYEXAM)~1`.
 2.  Using the estimates in 1, predict the latent classes
-    $$\\hat{s}\_i$$
+    \\(\hat{s}\_i\\)
     ,
     *i* = 1, ..., *n*
     , by assigning each unit
@@ -156,7 +156,7 @@ Here we consider the classical three--step strategy to estimate latent class mod
      to the class
     *r*
      with the highest pr
-    $$(s\_i=r | \\hat{\\pi}, \\hat{\\nu},y\_i)$$
+   \\[s\_i=r | \\hat{\\pi}, \\hat{\\nu},y\_i\\]
     .
 3.  Estimate the coefficients
     *β*<sub>1</sub>, ..., *β*<sub>*R*</sub>
