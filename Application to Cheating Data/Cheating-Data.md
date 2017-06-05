@@ -535,4 +535,4 @@ data_plot[c((iter_NR_EM_alpha_1[sel]+1):
 
 Finally we create the Figure.
 
-![](Cheating-Data_files/figure-markdown_github/unnamed-chunk-30-1.png)
+![](https://github.com/danieledurante/nEM/blob/master/Application%20to%20Cheating%20Data/left-plot-Figure-2.png)
