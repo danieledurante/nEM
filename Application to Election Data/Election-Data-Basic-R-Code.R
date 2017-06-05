@@ -12,7 +12,8 @@ str(election[, c(1:12,17)])
 election <- na.omit(election)
 
 # Latent class model with covariates to be estimated.
-f_election <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
+f_election <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
+                    MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
 
 # Define seeds of the 100 runs for each algorithm
 Rep_Tot <- 100
@@ -89,7 +90,8 @@ llik_decrement_NR_EM_alpha_0.25[rep,] <- fit_NR_EM[[3]]}
 #----------------------------------------------------------------------------------------
 # 3-step Classical
 llik_3_step_classical <- rep(0, Rep_Tot)
-f_election_3_step <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
+f_election_3_step <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
+                           MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
 nclass = 3
 mframe_election_3_step <- model.frame(f_election_3_step, election)
 y_election_3_step <- model.response(mframe_election_3_step)
@@ -102,7 +104,8 @@ for (rep in 1:Rep_Tot){
 #---------------------------------------------------------------------------------------------------
 # 1] Estimate a latent class model without covariates
 #---------------------------------------------------------------------------------------------------
-f_election_unconditional <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ 1
+f_election_unconditional <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
+                                  MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ 1
 fit_unconditional <- unconditional_em(f_election_unconditional, election, nclass = 3, seed = seed_rep[rep])
 
 #---------------------------------------------------------------------------------------------------
@@ -117,7 +120,8 @@ b <- c(t(summary(multinom(pred_class ~ election$PARTY, trace = FALSE))$coefficie
 
 # Compute the log-likelihood of the full model
 prior <- poLCA:::poLCA.updatePrior(b, x_election_3_step, R_election_3_step)
-llik_3_step_classical[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_unconditional[[3]], y_election_3_step))))}
+llik_3_step_classical[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_unconditional[[3]], 
+                                  y_election_3_step))))}
 
 )[3]
 
@@ -125,7 +129,8 @@ llik_3_step_classical[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_u
 #----------------------------------------------------------------------------------------
 # 3-step Correct
 llik_3_step_corrected <- rep(0, Rep_Tot)
-f_election_3_step <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
+f_election_3_step <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
+                           MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
 nclass = 3
 mframe_cheating_3_step <- model.frame(f_election_3_step, election)
 y_election_3_step <- model.response(mframe_election_3_step)
@@ -138,7 +143,8 @@ for (rep in 1:Rep_Tot){
 #---------------------------------------------------------------------------------------------------
 # 1] Estimate a latent class model without covariates
 #---------------------------------------------------------------------------------------------------
-f_election_unconditional <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ 1
+f_election_unconditional <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
+                                  MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ 1
 fit_unconditional <- unconditional_em(f_election_unconditional, election, nclass = 3, seed = seed_rep[rep])
 
 #---------------------------------------------------------------------------------------------------
@@ -157,11 +163,13 @@ class_err <- t(class_err)
 # 3] Estimate the beta coefficients from the correction procedure in Vermunt (2010)
 #---------------------------------------------------------------------------------------------------
 f_election_3_step_correct <- cbind(pred_class) ~ PARTY
-fit_correct <- correction_em(f_election_3_step_correct, election, nclass = 3, seed = seed_rep[rep], classification_error = class_err)
+fit_correct <- correction_em(f_election_3_step_correct, election, nclass = 3, seed = seed_rep[rep], 
+                             classification_error = class_err)
 
 # Compute the log-likelihood of the full model
 prior <- poLCA:::poLCA.updatePrior(fit_correct[[3]], x_election_3_step, R_election_3_step)
-llik_3_step_corrected[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_unconditional[[3]], y_election_3_step))))}
+llik_3_step_corrected[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_unconditional[[3]], 
+                                  y_election_3_step))))}
 
 )[3]
 
@@ -258,7 +266,8 @@ rownames(Table_Performance) <- c("N. Decays",
                                  "Q3 N. Iterat. Converge max(Log-L)",
                                  "Averaged Time")
 
-colnames(Table_Performance) <- c("NR EM 1","NR EM 0.75","NR EM 0.5","NR EM 0.25","CLASSIC. 3-STEP","CORREC. 3-STEP","NESTED EM","HYBRID EM")
+colnames(Table_Performance) <- c("NR EM 1","NR EM 0.75","NR EM 0.5","NR EM 0.25","CLASSIC. 3-STEP",
+                                 "CORREC. 3-STEP","NESTED EM","HYBRID EM")
 
 #----------------------------------------------------------------------------------------
 # Compute the performance measures for the different algorithms
