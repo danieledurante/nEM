@@ -326,7 +326,7 @@ llik_decrement_HYB[rep,] <- fit_HYB[[3]]}
 ```
 
 Performance comparison
-----------------------------------------------------
+----------------------
 
 Once the parameters have been estimated under the computational routines implemented above, we compare the maximization performance and the computational efficiency of the different algorithms, in order to reproduce the results in Table 2 of our paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). In particular, we consider the following quantities, computed for each run of every routine:
 
@@ -361,11 +361,8 @@ n_l_modes <- sum(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)
 #----------------------------------------------------------------------------------------------
 # Quartiles of the difference between log-likelihoods in local modes and the maximum one.
 #----------------------------------------------------------------------------------------------
-any_mode <- sum((abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)*1)
-if (any_mode > 0){ 
 sel_modes <- which(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)
-diff_llik <- quantile(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)])[sel_modes])[2:4]} else {
-diff_llik <- rep(0,3)}
+diff_llik <- quantile(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)])[sel_modes])[2:4]
 
 #----------------------------------------------------------------------------------------------
 # Quartiles of the number of iterations to reach convergence to maximum log-likelihood.
@@ -446,8 +443,7 @@ Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_alpha_0.
                                           time_NR_EM_alpha_0.25, delta)
 ```
 
-**3 Performance Classical 3-step algorithm (three-step maximization)** 
-> As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**3 Performance Classical 3-step algorithm (three-step maximization)** &gt; As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classical, 
@@ -456,8 +452,7 @@ Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classic
 Table_Performance[1,5] <- NA
 ```
 
-**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** 
-> Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** &gt; Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,6] <- performance_algo(max_llik, Rep_Tot, llik_3_step_corrected, 
@@ -502,7 +497,7 @@ kable(Table_Performance[,1:4])
 | Q1 N. Iterat. Converge max(Log-L) |   133.75000|   131.00000|  136.750000|  151.7500000|
 | Q2 N. Iterat. Converge max(Log-L) |   169.50000|   174.50000|  183.500000|  209.0000000|
 | Q3 N. Iterat. Converge max(Log-L) |   240.25000|   245.50000|  266.000000|  320.2500000|
-| Averaged Time                     |     0.13378|     0.16341|    0.203310|    0.2324800|
+| Averaged Time                     |     0.12613|     0.17079|    0.195310|    0.2215400|
 
 The maximization performance and the computational efficiency of the three-step estimation algorithms, along with those of our **nested EM** and its hybrid modification, are instead:
 
@@ -521,7 +516,7 @@ kable(Table_Performance[,5:8])
 | Q1 N. Iterat. Converge max(Log-L) |               NA|              NA|  146.0000000|  122.0000000|
 | Q2 N. Iterat. Converge max(Log-L) |               NA|              NA|  182.0000000|  166.0000000|
 | Q3 N. Iterat. Converge max(Log-L) |               NA|              NA|  257.5000000|  249.0000000|
-| Averaged Time                     |          0.21202|         0.18397|    0.3502600|    0.2154100|
+| Averaged Time                     |          0.20476|         0.17436|    0.3427100|    0.2166100|
 
 Reproduce the right plot in Figure 2 of the paper
 -------------------------------------------------
@@ -563,4 +558,4 @@ plot <- ggplot(data = data_ggplot, aes(x = X1, y = value, group = X2)) +
 plot
 ```
 
-![](https://github.com/danieledurante/nEM/blob/master/Application%20to%20Election%20Data/right-plot-Figure-2.png)
+![](Election-Data-Tutorial_files/figure-markdown_github/unnamed-chunk-29-1.png)
