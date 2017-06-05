@@ -2,6 +2,18 @@ Performance assessment for the CHEATING data
 ================
 Daniele Durante
 
+<style type="text/css">
+
+body, td {
+   font-size: 14px;
+}
+code.r{
+  font-size: 20px;
+}
+pre {
+  font-size: 20px
+}
+</style>
 Description
 -----------
 
@@ -147,22 +159,8 @@ llik_decrement_NR_EM_alpha_0.25[rep,] <- fit_NR_EM[[3]]})[3]
 Here we consider the classical three--step strategy to estimate latent class models with covariates (e.g. [Clogg 1995](https://www.iser.essex.ac.uk/research/publications/494549)). As discussed in Section 1.2 of our paper, this algorithm consists of the following three steps.
 
 1.  Estimate a latent class model without covariates. This requires the function `unconditional_em()` (in `LCA-Covariates-Algorithms.R`) applied to the model `f_cheating_unconditional <- cbind(LIEEXAM,LIEPAPER,FRAUD,COPYEXAM)~1`.
-2.  Using the estimates in 1, predict the \[ x^n + y^n = z^n \] latent classes
-    *s*<sub>1
-    ,
-    *i* = 1, ..., *n*
-    , by assigning each unit
-    *i*
-     to the class
-    *r*
-     with the highest pr
-   \\[s\_i=r | \\hat{\\pi}, \\hat{\\nu},y\_i\\]
-    .
-3.  Estimate the coefficients
-    *β*<sub>1</sub>, ..., *β*<sub>*R*</sub>
-     from a multinomial logistic regression with
-    $$\\hat{s}\_1,...,\\hat{s}\_n$$
-     as responses, using the `R` function `multinom` in the library `nnet`.
+2.  Using the estimates in 1, predict the latent classes *s*<sub>*i*</sub>, *i* = 1, ..., *n*, by assigning each unit *i* to the class *r* with the highest predicted probability.
+3.  Using the `R` function `multinom` in the library `nnet`, estimate the coefficients *β*<sub>1</sub>, ..., *β*<sub>*R*</sub> from a multinomial logistic regression with the predicted *s*<sub>1</sub>, ..., *s*<sub>*n*</sub> as responses.
 
 The code to implement this routine and save the relevant quantities is:
 
@@ -205,7 +203,7 @@ llik_3_step_classical[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_u
 Here we implement the modification proposed by [Vermunt (2010)](https://academic.oup.com/pan/article-abstract/18/4/450/1518615/Latent-Class-Modeling-with-Covariates-Two-Improved) of the classical three-step methods, in order to reduce the bias of the estimators. This strategy is discussed in Sections 1.2 and 4 of our paper, and proceed as follows:
 
 1.  Estimate a latent class model without covariates. This requires the function `unconditional_em()` (in `LCA-Covariates-Algorithms.R) applied to the model`f\_cheating\_unconditional &lt;- cbind(LIEEXAM,LIEPAPER,FRAUD,COPYEXAM)~1\`.
-2.  Using the estimates in 1, predict the latent classes $\\hat{s}\_i$, *i* = 1, ..., *n*, by assigning unit each *i* to the class *r* with the highest pr$(s\_i=r | \\hat{\\pi}, \\hat{\\nu},y\_i)$. Compute also the classification error by applying equation (6) in [Vermunt (2010)](https://academic.oup.com/pan/article-abstract/18/4/450/1518615/Latent-Class-Modeling-with-Covariates-Two-Improved).
+2.  Using the estimates in 1, predict the latent classes *s*<sub>*i*</sub>, *i* = 1, ..., *n*, by assigning each unit *i* to the class *r* with the highest predicted probability. Compute also the classification error by applying equation (6) in [Vermunt (2010)](https://academic.oup.com/pan/article-abstract/18/4/450/1518615/Latent-Class-Modeling-with-Covariates-Two-Improved).
 3.  Following equation (19) in [Vermunt (2010)](https://academic.oup.com/pan/article-abstract/18/4/450/1518615/Latent-Class-Modeling-with-Covariates-Two-Improved) estimate the coefficients *β*<sub>1</sub>, ..., *β*<sub>*R*</sub> from a latent class model with covariates, where the predicted latent classes from 2 act as the only categorical variable available, and its probability mass function within each class is fixed and equal to the classification error. This implementation requires the function `correction_em()` in `LCA-Covariates-Algorithms.R`.
 
 The code to implement this routine and save the relevant quantities is:
@@ -527,7 +525,7 @@ kable(Table_Performance[,1:4])
 | Q1 Number Iteration Convergence max(Log-L) |  105.50000|   114.00000|  145.00000|   233.75000|
 | Q2 Number Iteration Convergence max(Log-L) |  114.00000|   125.50000|  152.00000|   240.50000|
 | Q3 Number Iteration Convergence max(Log-L) |  127.00000|   137.00000|  162.75000|   252.00000|
-| Averaged Time                              |    0.03372|     0.04398|    0.06357|     0.10145|
+| Averaged Time                              |    0.03324|     0.04971|    0.06622|     0.10225|
 
 The maximization performance and the computational efficiency of the three-step estimation algorithms, along with those of our **nested EM** and its hybrid modification are instead:
 
@@ -546,7 +544,7 @@ kable(Table_Performance[,5:8])
 | Q1 Number Iteration Convergence max(Log-L) |                NA|                NA|  178.00000|  130.75000|
 | Q2 Number Iteration Convergence max(Log-L) |                NA|                NA|  184.50000|  135.50000|
 | Q3 Number Iteration Convergence max(Log-L) |                NA|                NA|  189.00000|  140.00000|
-| Averaged Time                              |          0.200810|         0.1913800|    0.10433|    0.06459|
+| Averaged Time                              |          0.203980|         0.1971600|    0.09588|    0.06658|
 
 Reproduce the left plot in Figure 2 of the paper
 ------------------------------------------------
