@@ -427,7 +427,8 @@ Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_alpha_0.
                                           time_NR_EM_alpha_0.25, delta)
 ```
 
-**3 Performance Classical 3-step algorithm (three-step maximization)** &gt; As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**3 Performance Classical 3-step algorithm (three-step maximization)** 
+> As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classical, 
@@ -436,7 +437,8 @@ Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classic
 Table_Performance[1,5] <- NA
 ```
 
-**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** &gt; Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**4 Performance Bias-corrected 3-step algorithm (three-step maximization)**  
+> Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,6] <- performance_algo(max_llik, Rep_Tot, llik_3_step_corrected, 
