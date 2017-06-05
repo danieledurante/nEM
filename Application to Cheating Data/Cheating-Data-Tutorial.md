@@ -321,7 +321,7 @@ Once the parameters have been estimated under the computational routines impleme
 
 **Computational Efficiency**
 
--   Quartiles of the number of iterations for convergence, computed only for the runs reaching the maximum log-likelihood.
+-   Quartiles of the number of iterations for convergence, computed only for the runs reaching the maximum.
 -   Averaged computational time for each run.
 
 Consistent with the above goal, let us create a function which computes the measures of performance from the output of the different algorithms.
