@@ -207,7 +207,7 @@ n_drops <- n_drops + (sum(loglik_decay[rep,1:n_iter[rep]]) > 0)*1}
 #---------------------------------------------------------------------------------------------- 
 n_l_modes <- sum(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)
 #----------------------------------------------------------------------------------------------
-# Quantiles of the difference between log-likelihoods in local modes and the maximum one.
+# Quartiles of the difference between log-likelihoods in local modes and the maximum one.
 #----------------------------------------------------------------------------------------------
 any_mode <- sum((abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)*1)
 if (any_mode > 0){ 
@@ -215,7 +215,7 @@ sel_modes <- which(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)
 diff_llik <- quantile(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)])[sel_modes])[2:4]} else {
 diff_llik <- rep(0,3) }
 #----------------------------------------------------------------------------------------------
-# Quantiles of the number of iterations to reach convergence to maximum log-likelihood.
+# Quartiles of the number of iterations to reach convergence to maximum log-likelihood.
 #----------------------------------------------------------------------------------------------
 sel_convergence <- which(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) <= delta)
 iter_convergence <- quantile(n_iter[sel_convergence])[2:4]
