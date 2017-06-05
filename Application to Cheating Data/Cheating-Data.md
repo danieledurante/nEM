@@ -543,4 +543,4 @@ plot <- ggplot(data = data_ggplot, aes(x = X1, y = value, group = X2)) +
 plot
 ```
 
-![](Cheating-Data_files/figure-markdown_github/unnamed-chunk-29-1.png)
+[](https://github.com/danieledurante/nEM/blob/master/Application%20to%20Cheating%20Data/left-plot-Figure-2.png)
