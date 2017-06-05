@@ -147,8 +147,8 @@ llik_decrement_NR_EM_alpha_0.25[rep,] <- fit_NR_EM[[3]]})[3]
 Here we consider the classical three--step strategy to estimate latent class models with covariates (e.g. [Clogg 1995](https://www.iser.essex.ac.uk/research/publications/494549)). As discussed in Section 1.2 of our paper, this algorithm consists of the following three steps.
 
 1.  Estimate a latent class model without covariates. This requires the function `unconditional_em()` (in `LCA-Covariates-Algorithms.R`) applied to the model `f_cheating_unconditional <- cbind(LIEEXAM,LIEPAPER,FRAUD,COPYEXAM)~1`.
-2.  Using the estimates in 1, predict the latent classes
-    \\(\hat{s}\_i\\)
+2.  Using the estimates in 1, predict the \[ x^n + y^n = z^n \] latent classes
+    *s*<sub>1
     ,
     *i* = 1, ..., *n*
     , by assigning each unit
