@@ -58,7 +58,7 @@ Estimation under the different maximization routines
 
 We perform estimation of the parameters in the latent class regression model with covariates defined above, under different computational routines (including our novel **nested EM** algorithm) and compare maximization performance, along with computational efficiency.
 
-Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we focus on a model with `R=2` latent classes.
+Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we focus on a model with `R = 2` latent classes.
 
 #### 1. EM algorithm with Newton-Raphson methods (one-step maximization)
 
@@ -158,7 +158,7 @@ llik_decrement_NR_EM_alpha_0.25[rep,] <- fit_NR_EM[[3]]}
 
 Here we consider the classical three-step strategy to estimate latent class models with covariates (e.g. [Clogg 1995](https://www.iser.essex.ac.uk/research/publications/494549)). As discussed in Section 1.2 of our paper, this algorithm consists of the following three steps.
 
-1.  Estimate a latent class model without covariates `f_cheating_unconditional <- cbind(LIEEXAM,LIEPAPER,FRAUD,COPYEXAM) ~ 1`. This requires the function `unconditional_em()` (in `LCA-Covariates-Algorithms.R`).
+1.  Estimate a latent class model without covariates `f_cheating_unconditional <- cbind(LIEEXAM, LIEPAPER, FRAUD, COPYEXAM) ~ 1`. This requires the function `unconditional_em()` (in `LCA-Covariates-Algorithms.R`).
 2.  Using the estimates in 1, predict the latent classes *s*<sub>*i*</sub>, *i* = 1, ..., *n*, by assigning each unit *i* to the class *r* with the highest predicted probability.
 3.  Using the `R` function `multinom` in the library `nnet`, estimate the coefficients *β*<sub>1</sub>, ..., *β*<sub>*R*</sub> from a multinomial logistic regression with the predicted *s*<sub>1</sub>, ..., *s*<sub>*n*</sub> as responses.
 
@@ -168,7 +168,7 @@ The code to implement this routine and save the relevant quantities is:
 # Create the allocation matrix for the full--model log-likelihood sequence.
 llik_3_step_classical <- rep(0, Rep_Tot)
 
-# Define useful quantities to compute the full--model log-likelihood sequence at the end of the routine.
+# Define useful quantities to compute the full--model log-likelihood sequence.
 f_cheating_3_step <- cbind(LIEEXAM, LIEPAPER, FRAUD, COPYEXAM) ~ GPA
 nclass = 2
 mframe_cheating_3_step <- model.frame(f_cheating_3_step, cheating)
@@ -183,7 +183,7 @@ for (rep in 1:Rep_Tot){
 #---------------------------------------------------------------------------------------------------
 # 1] Estimate a latent class model without covariates
 #---------------------------------------------------------------------------------------------------
-f_cheating_unconditional <- cbind(LIEEXAM, LIEPAPER, FRAUD, COPYEXAM)~1
+f_cheating_unconditional <- cbind(LIEEXAM, LIEPAPER, FRAUD, COPYEXAM) ~ 1
 fit_unconditional <- unconditional_em(f_cheating_unconditional, 
                                       cheating, nclass = 2, seed = seed_rep[rep])
 
@@ -219,7 +219,7 @@ The code to implement this routine and save the relevant quantities is:
 # Create the allocation matrix for the full--model log-likelihood sequence.
 llik_3_step_corrected <- rep(0, Rep_Tot)
 
-# Define useful quantities to compute the full--model log-likelihood sequence at the end of the routine.
+# Define useful quantities to compute the full--model log-likelihood sequence.
 f_cheating_3_step <- cbind(LIEEXAM, LIEPAPER, FRAUD, COPYEXAM) ~ GPA
 nclass = 2
 mframe_cheating_3_step <- model.frame(f_cheating_3_step, cheating)
@@ -387,18 +387,18 @@ Finally, let us create a matrix where to enter the different performance measure
 ``` r
 Table_Performance <- matrix(NA,9,8)
 
-rownames(Table_Performance) <- c("Number Decays",
-                                 "Number Local Modes",
+rownames(Table_Performance) <- c("N. Decays",
+                                 "N. Local Modes",
                                  "Q1 Log-L in Local Modes",
                                  "Q2 Log-L in Local Modes",
                                  "Q3 Log-L in Local Modes",
-                                 "Q1 Number Iteration Convergence max(Log-L)",
-                                 "Q2 Number Iteration Convergence max(Log-L)",
-                                 "Q3 Number Iteration Convergence max(Log-L)",
+                                 "Q1 N. Iterat. Converge max(Log-L)",
+                                 "Q2 N. Iterat. Converge max(Log-L)",
+                                 "Q3 N. Iterat. Converge max(Log-L)",
                                  "Averaged Time")
 
-colnames(Table_Performance) <- c("NR EM 1","NR EM 0.75","NR EM 0.5","NR EM 0.25","CLASSICAL 3-STEP",
-                                 "CORRECTED 3-STEP","NESTED EM","HYBRID EM")
+colnames(Table_Performance) <- c("NR EM 1","NR EM 0.75","NR EM 0.5","NR EM 0.25","CLASSIC. 3-STEP",
+                                 "CORREC. 3-STEP","NESTED EM","HYBRID EM")
 ```
 
 We can now compute the different performance measures for our algorithms.
@@ -437,7 +437,7 @@ Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_alpha_0.
                                           time_NR_EM_alpha_0.25, delta)
 ```
 
-**3 Performance Classical 3-step algorithm (three-step maximization)** As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**3 Performance Classical 3-step algorithm (three-step maximization)** &gt; As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classical, 
@@ -445,7 +445,7 @@ Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classic
                                           time_3_step_classical, delta)
 ```
 
-**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** &gt; Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
 Table_Performance[,6] <- performance_algo(max_llik, Rep_Tot, llik_3_step_corrected, 
@@ -479,17 +479,17 @@ library(knitr)
 kable(Table_Performance[,1:4])
 ```
 
-|                                            |    NR EM 1|  NR EM 0.75|  NR EM 0.5|  NR EM 0.25|
-|--------------------------------------------|----------:|-----------:|----------:|-----------:|
-| Number Decays                              |   65.00000|    42.00000|   23.00000|    10.00000|
-| Number Local Modes                         |   66.00000|    46.00000|   26.00000|     8.00000|
-| Q1 Log-L in Local Modes                    |   24.02133|    18.48638|   24.02133|    16.80014|
-| Q2 Log-L in Local Modes                    |   24.24113|    24.02133|   24.02133|    24.02133|
-| Q3 Log-L in Local Modes                    |   35.59522|    35.59522|   35.59522|    26.79844|
-| Q1 Number Iteration Convergence max(Log-L) |  105.50000|   114.00000|  145.00000|   233.75000|
-| Q2 Number Iteration Convergence max(Log-L) |  114.00000|   125.50000|  152.00000|   240.50000|
-| Q3 Number Iteration Convergence max(Log-L) |  127.00000|   137.00000|  162.75000|   252.00000|
-| Averaged Time                              |    0.03405|     0.04805|    0.06367|     0.09190|
+|                                   |    NR EM 1|  NR EM 0.75|  NR EM 0.5|  NR EM 0.25|
+|-----------------------------------|----------:|-----------:|----------:|-----------:|
+| N. Decays                         |   65.00000|    42.00000|   23.00000|    10.00000|
+| N. Local Modes                    |   66.00000|    46.00000|   26.00000|     8.00000|
+| Q1 Log-L in Local Modes           |   24.02133|    18.48638|   24.02133|    16.80014|
+| Q2 Log-L in Local Modes           |   24.24113|    24.02133|   24.02133|    24.02133|
+| Q3 Log-L in Local Modes           |   35.59522|    35.59522|   35.59522|    26.79844|
+| Q1 N. Iterat. Converge max(Log-L) |  105.50000|   114.00000|  145.00000|   233.75000|
+| Q2 N. Iterat. Converge max(Log-L) |  114.00000|   125.50000|  152.00000|   240.50000|
+| Q3 N. Iterat. Converge max(Log-L) |  127.00000|   137.00000|  162.75000|   252.00000|
+| Averaged Time                     |    0.02974|     0.03980|    0.05461|     0.09174|
 
 The maximization performance and the computational efficiency of the three-step estimation algorithms, along with those of our **nested EM** and its hybrid modification are instead:
 
@@ -498,17 +498,17 @@ library(knitr)
 kable(Table_Performance[,5:8])
 ```
 
-|                                            |  CLASSICAL 3-STEP|  CORRECTED 3-STEP|  NESTED EM|  HYBRID EM|
-|--------------------------------------------|-----------------:|-----------------:|----------:|----------:|
-| Number Decays                              |          0.000000|         0.0000000|    0.00000|    0.00000|
-| Number Local Modes                         |        100.000000|       100.0000000|    0.00000|    0.00000|
-| Q1 Log-L in Local Modes                    |          1.632104|         0.5393288|    0.00000|    0.00000|
-| Q2 Log-L in Local Modes                    |          1.632106|         0.5393291|    0.00000|    0.00000|
-| Q3 Log-L in Local Modes                    |          1.632107|         0.5393402|    0.00000|    0.00000|
-| Q1 Number Iteration Convergence max(Log-L) |                NA|                NA|  178.00000|  130.75000|
-| Q2 Number Iteration Convergence max(Log-L) |                NA|                NA|  184.50000|  135.50000|
-| Q3 Number Iteration Convergence max(Log-L) |                NA|                NA|  189.00000|  140.00000|
-| Averaged Time                              |          0.204850|         0.1993500|    0.08892|    0.05744|
+|                                   |  CLASSIC. 3-STEP|  CORREC. 3-STEP|  NESTED EM|  HYBRID EM|
+|-----------------------------------|----------------:|---------------:|----------:|----------:|
+| N. Decays                         |         0.000000|       0.0000000|    0.00000|    0.00000|
+| N. Local Modes                    |       100.000000|     100.0000000|    0.00000|    0.00000|
+| Q1 Log-L in Local Modes           |         1.632104|       0.5393288|    0.00000|    0.00000|
+| Q2 Log-L in Local Modes           |         1.632106|       0.5393291|    0.00000|    0.00000|
+| Q3 Log-L in Local Modes           |         1.632107|       0.5393402|    0.00000|    0.00000|
+| Q1 N. Iterat. Converge max(Log-L) |               NA|              NA|  178.00000|  130.75000|
+| Q2 N. Iterat. Converge max(Log-L) |               NA|              NA|  184.50000|  135.50000|
+| Q3 N. Iterat. Converge max(Log-L) |               NA|              NA|  189.00000|  140.00000|
+| Averaged Time                     |         0.205800|       0.1835300|    0.09079|    0.05994|
 
 Reproduce the left plot in Figure 2 of the paper
 ------------------------------------------------
@@ -529,10 +529,25 @@ We then create a dataset with two columns. The first contains the log-likelihood
 ``` r
 data_plot <- cbind(llik_NEM[sel,],llik_NR_EM_alpha_1[sel,])
 data_plot <- data_plot[c(1:max(iter_NEM[sel],iter_NR_EM_alpha_1[sel])),]
-data_plot[c((iter_NR_EM_alpha_1[sel]+1):
+data_plot[c((iter_NR_EM_alpha_1[sel] + 1):
           max(iter_NEM[sel],iter_NR_EM_alpha_1[sel])),2] <- data_plot[iter_NR_EM_alpha_1[sel],2]
 ```
 
 Finally we create the Figure.
 
-![](https://github.com/danieledurante/nEM/blob/master/Application%20to%20Cheating%20Data/left-plot-Figure-2.png)
+``` r
+data_ggplot <- melt(data_plot)
+data_ggplot <- as.data.frame(data_ggplot)
+data_ggplot$app <- "CHEATING DATA"
+
+plot <- ggplot(data = data_ggplot, aes(x = X1, y = value, group = X2)) +
+               geom_line(aes(linetype = as.factor(X2))) +
+               coord_cartesian(ylim = c(-800, -420),xlim = c(0, 50)) + theme_bw() +
+               labs(x = "iteration", y = expression(paste(l,"(", theta^{(t)}, ";",x,",",y,")"))) +
+               theme(legend.position = "none",strip.text.x = element_text(size = 11,face = "bold")) +
+               facet_wrap(~ app)
+
+plot
+```
+
+![](Cheating-Data_files/figure-markdown_github/unnamed-chunk-30-1.png)
