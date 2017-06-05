@@ -204,7 +204,7 @@ llik_decrement_HYB[rep,] <- fit_HYB[[3]]}
 )[3]
 
 ##############################################################################
-## PERFORMANCE ASSESSMENTS  (TABLE 1) ########################################
+## PERFORMANCE ASSESSMENTS  (TABLE 2) ########################################
 ##############################################################################
 
 #Create function for performance assessments
@@ -225,11 +225,8 @@ n_l_modes <- sum(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)
 #----------------------------------------------------------------------------------------------
 # Quartiles of the difference between log-likelihoods in local modes and the maximum one.
 #----------------------------------------------------------------------------------------------
-any_mode <- sum((abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)*1)
-if (any_mode > 0){ 
 sel_modes <- which(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)
-diff_llik <- quantile(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)])[sel_modes])[2:4]} else {
-diff_llik <- rep(0,3)}
+diff_llik <- quantile(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)])[sel_modes])[2:4]
 
 #----------------------------------------------------------------------------------------------
 # Quartiles of the number of iterations to reach convergence to maximum log-likelihood.
@@ -311,7 +308,7 @@ Table_Performance[,5:8]
 
 
 ##############################################################################
-## REPRODUCE LEFT PLOT FIGURE 2 ##############################################
+## REPRODUCE RIGHT PLOT FIGURE 2 #############################################
 ##############################################################################
 library(ggplot2)
 library(reshape)
