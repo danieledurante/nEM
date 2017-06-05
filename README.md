@@ -3,8 +3,8 @@ This repository refers to the paper  [Durante, D., Canale, A. and Rigon, T. (201
 
 ## Source code
 
-The repository contains the source functions `LCA-Covariates-Algorithms.R` for the implementation of the proposed **nested EM** (and an hybrid version of the **nested EM**), along with additional algorithms routinely considered in the estimation of **latent class models with covariates**. 
+The repository contains the source functions [`LCA-Covariates-Algorithms.R`](https://github.com/danieledurante/nEM/blob/master/LCA-Covariates-Algorithms.R) for the implementation of the proposed **nested EM** (and an hybrid version of the **nested EM**), along with additional algorithms routinely considered in the estimation of **latent class models with covariates**. 
 
 ## Empirical performance assessments
 
-As we carefully show in Sections 3.1 and 3.2 of the paper [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864), the **nested EM** provides substantial improvements in maximization performance, compared to current algorithms. The analyses in Sections 3.1 and 3.2 can be reproduced using the materials in the folders `Application to Cheating Data` and `Application to Election Data`, respectively.
+As we carefully show in Sections 3.1 and 3.2 of the paper [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864), the **nested EM** provides substantial improvements in maximization performance, compared to current algorithms. The analyses in Sections 3.1 and 3.2 can be reproduced using the materials in the folders [`Application to Cheating Data`](https://github.com/danieledurante/nEM/tree/master/Application%20to%20Cheating%20Data) and [`Application to Election Data`](https://github.com/danieledurante/nEM/tree/master/Application%20to%20Election%20Data), respectively.
