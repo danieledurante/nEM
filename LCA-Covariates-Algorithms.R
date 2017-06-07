@@ -645,7 +645,7 @@ dll <- llik[iter] - llik[iter - 1]}
 # EM algorithm.
 output <- list()
 output[[1]] <- iter
-output[[2]] <- llik[iter]
+output[[2]] <- llik
 output[[3]] <- vp
 output[[4]] <- poLCA:::poLCA.postClass.C(prior, vp, y)
 output[[5]] <- prior
