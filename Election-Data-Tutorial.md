@@ -67,6 +67,10 @@ We perform estimation of the parameters in the above latent class model with cov
 
 Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we first focus on the model with `R = 2` latent classes.
 
+``` r
+n_c <- 3
+```
+
 ---
 #### 1. EM algorithm with Newton-Raphson as in Bandeen-Roche et al. (1997) (one-step)
 
