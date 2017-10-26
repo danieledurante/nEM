@@ -23,10 +23,23 @@ library(nnet)
 # only after estimation in the light of the class-specific probabilities of the categorical variables. 
 # Therefore this operation is possible without loss of generality and interpretability.
 
+##############################################################################################
+##############################################################################################
+#### USEFUL FUNCTION TO COMPUTE THE CLASS PROBABILITIES ######################################
+##############################################################################################
+##############################################################################################
+update_probs<-function(b, x, R, n, P){
+  b <- cbind(rep(0,P),matrix(b, ncol = (R - 1)))
+  pred_x <- x %*% b
+  p <- matrix(0,n,R)
+  for (r in 1:R){
+    p[,r]<-1/rowSums(exp(pred_x-pred_x[,r]))}
+  return(p)
+}
 
 ##############################################################################################
 ##############################################################################################
-#### EM ALGORITHM WITH NEWTON-RAPHSON STEPS ##################################################
+#### EM ALGORITHM WITH NEWTON-RAPHSON STEPS BASED ON LL ######################################
 ##############################################################################################
 ##############################################################################################
 # DESCRIPTION: This function performs one-step estimation using the EM algorithm with one 
@@ -46,134 +59,488 @@ library(nnet)
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 #- alpha: tuning parameter to rescale the updating of beta, and reduce concerns with drops in the log-likelihood sequence.
 
-newton_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, alpha=1){
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# CREATE USEFUL QUANTITIES (following the notation in the paper)
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-mframe <- model.frame(formula, data)
-y <- model.response(mframe)
-x <- model.matrix(formula, mframe)
-n <- nrow(y)
-J <- ncol(y)
-K.j <- t(matrix(apply(y, 2, max)))
-R <- nclass
-P <- ncol(x)
-
-# dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
-dll <- Inf
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# CREATE THE QUANTITIES TO BE SAVED
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# llik denotes the log-likelihood sequence
-llik <- rep(NA,maxiter)
-# llik_decrement is a vector monitoring drops in the log-likelihood sequence.
-llik_decrement <- rep(NA,maxiter)
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# INITIALIZE THE PARAMETERS
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-set.seed(seed)
-#------------------------------------------------
-# Conditional Probabilities (pi) ----------------
-#------------------------------------------------
-probs <- list()
-for (j in 1:J) {
-probs[[j]] <- matrix(runif(R * K.j[j]), nrow = R, ncol = K.j[j])
-probs[[j]] <- probs[[j]]/rowSums(probs[[j]])}
-probs.init <- probs
-vp <- poLCA:::poLCA.vectorize(probs)
-
-#------------------------------------------------
-# Beta Coefficients (beta) ----------------------
-#------------------------------------------------
-b <- rnorm(P*(R - 1), 0, 0.1)	
-
-#------------------------------------------------
-# Log-likelihood at the initial values-----------
-#------------------------------------------------
-prior <- poLCA:::poLCA.updatePrior(b, x, R)
-
-iter <- 1
-llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
-llik_decrement[iter] <- (dll < -1e-07)*1
-
-#---------------------------------------------------------------------------------------------
-##############################################################################################
-# ALGORITHM
-##############################################################################################
-#---------------------------------------------------------------------------------------------
-while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter]))){
-#--------------------------------------------------------------------------------
-iter <- iter + 1
-#--------------------------------------------------------------------------------
-
-#--------------------------------------------------------------------------------
-# E-STEP	
-#--------------------------------------------------------------------------------
-# Compute the conditional expectation of the latent class indicators for each unit
-rgivy <- poLCA:::poLCA.postClass.C(prior, vp, y)
-
-#--------------------------------------------------------------------------------
-# M-STEP	
-#--------------------------------------------------------------------------------
-# M-STEP for pi:
-# Maximize the probabilities of each categorical variable within every class
-vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
-
-# M-STEP for beta:
-# Maximize the beta coefficiens in the multinomial logit for the classes via Newton-Raphson
-dd <- poLCA:::poLCA.dLL2dBeta.C(rgivy, prior, x)
-b <- b + alpha*ginv(-dd$hess) %*% dd$grad
-prior <- poLCA:::poLCA.updatePrior(b, x, R)
-
-#--------------------------------------------------------------------------------
-# UPDATE THE QUANTITIES TO BE MONITORED
-#--------------------------------------------------------------------------------
-#----------------------------------------------
-# Log-Likelihood Sequence ---------------------
-#----------------------------------------------
-llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
-
-#----------------------------------------------
-# Decrement (0 if no decay, 1 if decay) -------
-#----------------------------------------------
-llik_decrement[iter] <- (dll < -1e-07)*1
-
-#--------------------------------------------------------------------------------
-# COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
-#--------------------------------------------------------------------------------
-dll <- llik[iter] - llik[iter - 1]}
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# OUTPUT OF THE ALGORITHM
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# NOTE: In the paper we focus on the computational properties of the algorithms and 
-# therefore we output the number of iterations for convergence, the log-likelihood 
-# sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when 
-# providing inference on the model, also the estimates of the parameters beta (b) and 
-# the probabilities of the categorical variables y within each latent class (pi) should 
-# be given as output.
-output <- list()
-output[[1]] <- iter
-output[[2]] <- llik
-output[[3]] <- llik_decrement
-
-return(output)
+newton_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, alpha=1, sigma_init=0.5){
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE USEFUL QUANTITIES (following the notation in the paper)
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  mframe <- model.frame(formula, data)
+  y <- model.response(mframe)
+  x <- model.matrix(formula, mframe)
+  n <- nrow(y)
+  J <- ncol(y)
+  K.j <- t(matrix(apply(y, 2, max)))
+  R <- nclass
+  P <- ncol(x)
+  
+  # dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
+  dll <- Inf
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE THE QUANTITIES TO BE SAVED
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # llik denotes the log-likelihood sequence
+  llik <- rep(NA,maxiter)
+  # llik_decrement is a vector monitoring drops in the log-likelihood sequence.
+  llik_decrement <- rep(NA,maxiter)
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # INITIALIZE THE PARAMETERS
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  set.seed(seed)
+  #------------------------------------------------
+  # Conditional Probabilities (pi) ----------------
+  #------------------------------------------------
+  probs <- list()
+  for (j in 1:J) {
+    probs[[j]] <- matrix(runif(R * K.j[j]), nrow = R, ncol = K.j[j])
+    probs[[j]] <- probs[[j]]/rowSums(probs[[j]])}
+  probs.init <- probs
+  vp <- poLCA:::poLCA.vectorize(probs)
+  
+  #------------------------------------------------
+  # Beta Coefficients (beta) ----------------------
+  #------------------------------------------------
+  b <- rnorm(P*(R - 1), 0, sigma_init)	
+  
+  #------------------------------------------------
+  # Log-likelihood at the initial values-----------
+  #------------------------------------------------
+  prior <- update_probs(b, x, R, n, P)
+  
+  #--------------------------------------------------------------------------------
+  # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+  if (sum((apply(prior,2,sum)==0))==0){
+    prior_tune <- prior} else {
+      prior_tune <- prior
+      prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+      prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+  #--------------------------------------------------------------------------------
+  
+  iter <- 1
+  llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+  llik_decrement[iter] <- (dll < -1e-07)*1
+  
+  #---------------------------------------------------------------------------------------------
+  ##############################################################################################
+  # ALGORITHM
+  ##############################################################################################
+  #---------------------------------------------------------------------------------------------
+  while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter])) & !(llik[iter] == -Inf)){
+    #--------------------------------------------------------------------------------
+    iter <- iter + 1
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # E-STEP	
+    #--------------------------------------------------------------------------------
+    # Compute the conditional expectation of the latent class indicators for each unit
+    rgivy <- poLCA:::poLCA.postClass.C(prior_tune, vp, y)
+    
+    #--------------------------------------------------------------------------------
+    # M-STEP	
+    #--------------------------------------------------------------------------------
+    # M-STEP for pi:
+    # Maximize the probabilities of each categorical variable within every class
+    vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
+    
+    # M-STEP for beta:
+    # Maximize the beta coefficiens in the multinomial logit for the classes via Newton-Raphson
+    dd <- poLCA:::poLCA.dLL2dBeta.C(rgivy, prior, x)
+    b <- b + alpha*ginv(-dd$hess) %*% dd$grad
+    prior <- update_probs(b, x, R, n, P)
+    
+    #--------------------------------------------------------------------------------
+    # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+    if (sum((apply(prior,2,sum)==0))==0){
+      prior_tune <- prior} else {
+        prior_tune <- prior
+        prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+        prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # UPDATE THE QUANTITIES TO BE MONITORED
+    #--------------------------------------------------------------------------------
+    #----------------------------------------------
+    # Log-Likelihood Sequence ---------------------
+    #----------------------------------------------
+    llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+    
+    #--------------------------------------------------------------------------------
+    # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
+    #--------------------------------------------------------------------------------
+    dll <- llik[iter] - llik[iter - 1]
+    
+    #----------------------------------------------
+    # Decrement (0 if no decay, 1 if decay) -------
+    #----------------------------------------------
+    llik_decrement[iter] <- (dll < -1e-07)*1}
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # OUTPUT OF THE ALGORITHM
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # NOTE: In the paper we focus on the computational properties of the algorithms and 
+  # therefore we output the number of iterations for convergence, the log-likelihood 
+  # sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when 
+  # providing inference on the model, also the estimates of the parameters beta (b) and 
+  # the probabilities of the categorical variables y within each latent class (pi) should 
+  # be given as output.
+  output <- list()
+  output[[1]] <- iter
+  output[[2]] <- llik
+  output[[3]] <- llik_decrement
+  
+  return(output)
 }
 
 
 
+##############################################################################################
+##############################################################################################
+#### EM ALGORITHM WITH NEWTON-RAPHSON STEPS BASED ON Q_1 #####################################
+##############################################################################################
+##############################################################################################
+# DESCRIPTION: This function performs one-step estimation using the EM algorithm with one 
+# Newton-Raphson step based on the quadratic approximation of the expected log-likelihood Q_1
+# for the beta coefficients. This is different than the algorithm in the poLCA library which
+# instead relies on a quadratic approximation of the full model log-likelihood. The code also allows 
+# for a correction (controlled by 0<alpha<1) to reduce the chance of decays in the log-likelihood sequence 
+# (McLachlan and Krishnan 2007). When alpha=1, the function performs the routine with the classical 
+# Newton-Raphson step without corrections.
+
+# DETAILS OF THE METHODOLOGY: This type of EM is carefully discussed in Section 1.1 of the paper.
+
+# DETAILS OF THE INPUT QUANTITIES:
+#- formula: defines the latent class model with covariates to be estimated (as in the poLCA library).
+#- data: input data (including the multivariate categorical responses y and the covariates x in the formula).
+#- nclass: number of latent classes to be considered in the model.
+#- maxiter: maximum number of iterations in the EM to be considered.
+#- tol: the EM algorithm stops when an additional iteration increases the log-likelihood by less than tol.
+#- seed: seed to be considered when initializing the beta and pi parameters from random draws.
+#- alpha: tuning parameter to rescale the updating of beta, and reduce concerns with drops in the log-likelihood sequence.
+
+
+newton_em_Q1 <- function(formula, data, nclass = 2, maxiter = 1000, alpha=1, tol = 1e-11, seed=1, sigma_init=0.5){
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE USEFUL QUANTITIES (following the notation in the paper)
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  mframe <- model.frame(formula, data)
+  y <- model.response(mframe)
+  x <- model.matrix(formula, mframe)
+  n <- nrow(y)
+  J <- ncol(y)
+  K.j <- t(matrix(apply(y, 2, max)))
+  R <- nclass
+  P <- ncol(x)
+  
+  # dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
+  dll <- Inf
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE THE QUANTITIES TO BE SAVED
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # llik denotes the log-likelihood sequence
+  llik <- rep(NA,maxiter)
+  # llik_decrement is a vector monitoring drops in the log-likelihood sequence.
+  llik_decrement <- rep(NA,maxiter)
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # INITIALIZE THE PARAMETERS
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  set.seed(seed)
+  #------------------------------------------------
+  # Conditional Probabilities (pi) ----------------
+  #------------------------------------------------
+  probs <- list()
+  for (j in 1:J) {
+    probs[[j]] <- matrix(runif(R * K.j[j]), nrow = R, ncol = K.j[j])
+    probs[[j]] <- probs[[j]]/rowSums(probs[[j]])}
+  probs.init <- probs
+  vp <- poLCA:::poLCA.vectorize(probs)
+  
+  #------------------------------------------------
+  # Beta Coefficients (beta) ----------------------
+  #------------------------------------------------
+  b <- rnorm(P*(R - 1), 0, sigma_init)	
+  
+  #------------------------------------------------
+  # Log-likelihood at the initial values-----------
+  #------------------------------------------------
+  prior <- update_probs(b, x, R, n, P)
+  
+  #--------------------------------------------------------------------------------
+  # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+  if (sum((apply(prior,2,sum)==0))==0){
+    prior_tune <- prior} else {
+      prior_tune <- prior
+      prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+      prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+  #--------------------------------------------------------------------------------
+  
+  iter <- 1
+  llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+  llik_decrement[iter] <- (dll < -1e-07)*1
+  
+  #---------------------------------------------------------------------------------------------
+  ##############################################################################################
+  # ALGORITHM
+  ##############################################################################################
+  #---------------------------------------------------------------------------------------------
+  while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter])) & !(llik[iter] == -Inf)){
+    #--------------------------------------------------------------------------------
+    iter <- iter + 1
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # E-STEP	
+    #--------------------------------------------------------------------------------
+    # Compute the conditional expectation of the latent class indicators for each unit
+    rgivy <- poLCA:::poLCA.postClass.C(prior_tune, vp, y)
+    
+    #--------------------------------------------------------------------------------
+    # M-STEP	
+    #--------------------------------------------------------------------------------
+    # M-STEP for pi:
+    # Maximize the probabilities of each categorical variable within every class
+    vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
+    
+    # M-STEP for beta:
+    # Maximize the beta coefficiens in the multinomial logit for the classes via Newton-Raphson
+    dd_grad <- poLCA:::poLCA.dLL2dBeta.C(rgivy, prior, x)
+    dd_hes <- poLCA:::poLCA.dLL2dBeta.C(matrix(0,n,R), prior, x)
+    b <- b + alpha*ginv(-dd_hes$hess) %*% dd_grad$grad
+    prior <- update_probs(b, x, R, n, P)
+    
+    #--------------------------------------------------------------------------------
+    # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+    if (sum((apply(prior,2,sum)==0))==0){
+      prior_tune <- prior} else {
+        prior_tune <- prior
+        prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+        prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+    #--------------------------------------------------------------------------------
+    
+    
+    #--------------------------------------------------------------------------------
+    # UPDATE THE QUANTITIES TO BE MONITORED
+    #--------------------------------------------------------------------------------
+    #----------------------------------------------
+    # Log-Likelihood Sequence ---------------------
+    #----------------------------------------------
+    llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+    
+    #--------------------------------------------------------------------------------
+    # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
+    #--------------------------------------------------------------------------------
+    dll <- llik[iter] - llik[iter - 1]
+    
+    #----------------------------------------------
+    # Decrement (0 if no decay, 1 if decay) -------
+    #----------------------------------------------
+    llik_decrement[iter] <- (dll < -1e-07)*1
+    }
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # OUTPUT OF THE ALGORITHM
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # NOTE: In the paper we focus on the computational properties of the algorithms and 
+  # therefore we output the number of iterations for convergence, the log-likelihood 
+  # sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when 
+  # providing inference on the model, also the estimates of the parameters beta (b) and 
+  # the probabilities of the categorical variables y within each latent class (pi) should 
+  # be given as output.
+  output <- list()
+  output[[1]] <- iter
+  output[[2]] <- llik
+  output[[3]] <- llik_decrement
+  
+  return(output)
+}
 
  
+##############################################################################################
+##############################################################################################
+#### MM ALGORITHM WITH BOUND FOR THE AUGMENTED LOG-LIKELIHOOD ################################
+##############################################################################################
+##############################################################################################
+# DESCRIPTION: This function performs one-step estimation using the MM algorithm proposed in 
+# two papers by Bohning. The idea is to rely on a bound of the Hessian which preserves 
+# monotonicity
+
+# DETAILS OF THE METHODOLOGY: This type of MM is carefully discussed in Section 1.1 of the paper.
+
+# DETAILS OF THE INPUT QUANTITIES:
+#- formula: defines the latent class model with covariates to be estimated (as in the poLCA library).
+#- data: input data (including the multivariate categorical responses y and the covariates x in the formula).
+#- nclass: number of latent classes to be considered in the model.
+#- maxiter: maximum number of iterations in the EM to be considered.
+#- tol: the EM algorithm stops when an additional iteration increases the log-likelihood by less than tol.
+#- seed: seed to be considered when initializing the beta and pi parameters from random draws.
+
+
+MM_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, sigma_init=0.5){
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE USEFUL QUANTITIES (following the notation in the paper)
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  mframe <- model.frame(formula, data)
+  y <- model.response(mframe)
+  x <- model.matrix(formula, mframe)
+  n <- nrow(y)
+  J <- ncol(y)
+  K.j <- t(matrix(apply(y, 2, max)))
+  R <- nclass
+  P <- ncol(x)
+  
+  # dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
+  dll <- Inf
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE THE QUANTITIES TO BE SAVED
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # llik denotes the log-likelihood sequence
+  llik <- rep(NA,maxiter)
+  # llik_decrement is a vector monitoring drops in the log-likelihood sequence.
+  llik_decrement <- rep(NA,maxiter)
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # INITIALIZE THE PARAMETERS
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  set.seed(seed)
+  #------------------------------------------------
+  # Conditional Probabilities (pi) ----------------
+  #------------------------------------------------
+  probs <- list()
+  for (j in 1:J) {
+    probs[[j]] <- matrix(runif(R * K.j[j]), nrow = R, ncol = K.j[j])
+    probs[[j]] <- probs[[j]]/rowSums(probs[[j]])}
+  probs.init <- probs
+  vp <- poLCA:::poLCA.vectorize(probs)
+  
+  #------------------------------------------------
+  # Beta Coefficients (beta) ----------------------
+  #------------------------------------------------
+  b <- rnorm(P*(R - 1), 0, sigma_init)	
+  
+  #------------------------------------------------
+  # Log-likelihood at the initial values-----------
+  #------------------------------------------------
+  prior <- update_probs(b, x, R, n, P)
+  
+  #--------------------------------------------------------------------------------
+  # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+  if (sum((apply(prior,2,sum)==0))==0){
+    prior_tune <- prior} else {
+      prior_tune <- prior
+      prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+      prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+  #--------------------------------------------------------------------------------
+  
+  iter <- 1
+  llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+  llik_decrement[iter] <- (dll < -1e-07)*1
+  
+  #------------------------------------------------------------
+  # Compute the inverse of B required for the buond -----------
+  #------------------------------------------------------------
+  Inv_B <- kronecker(2*(diag(1,R-1,R-1) + matrix(1,R-1,R-1)),solve(t(x)%*%x))
+  
+  
+  #---------------------------------------------------------------------------------------------
+  ##############################################################################################
+  # ALGORITHM
+  ##############################################################################################
+  #---------------------------------------------------------------------------------------------
+  while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter])) & !(llik[iter] == -Inf)){
+    #--------------------------------------------------------------------------------
+    iter <- iter + 1
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # E-STEP	
+    #--------------------------------------------------------------------------------
+    # Compute the conditional expectation of the latent class indicators for each unit
+    rgivy <- poLCA:::poLCA.postClass.C(prior_tune, vp, y)
+    
+    #--------------------------------------------------------------------------------
+    # M-STEP	
+    #--------------------------------------------------------------------------------
+    # M-STEP for pi:
+    # Maximize the probabilities of each categorical variable within every class
+    vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
+    
+    # M-STEP for beta:
+    # Maximize the beta coefficiens in the multinomial logit for the classes via Newton-Raphson
+    dd <- poLCA:::poLCA.dLL2dBeta.C(rgivy, prior, x)
+    b <- b + Inv_B %*% dd$grad
+    prior <- update_probs(b, x, R, n, P)
+    
+    #--------------------------------------------------------------------------------
+    # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+    if (sum((apply(prior,2,sum)==0))==0){
+      prior_tune <- prior} else {
+        prior_tune <- prior
+        prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+        prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # UPDATE THE QUANTITIES TO BE MONITORED
+    #--------------------------------------------------------------------------------
+    #----------------------------------------------
+    # Log-Likelihood Sequence ---------------------
+    #----------------------------------------------
+    llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+    
+    #--------------------------------------------------------------------------------
+    # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
+    #--------------------------------------------------------------------------------
+    dll <- llik[iter] - llik[iter - 1]
+    
+    #----------------------------------------------
+    # Decrement (0 if no decay, 1 if decay) -------
+    #----------------------------------------------
+    llik_decrement[iter] <- (dll < -1e-07)*1}
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # OUTPUT OF THE ALGORITHM
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # NOTE: In the paper we focus on the computational properties of the algorithms and 
+  # therefore we output the number of iterations for convergence, the log-likelihood 
+  # sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when 
+  # providing inference on the model, also the estimates of the parameters beta (b) and 
+  # the probabilities of the categorical variables y within each latent class (pi) should 
+  # be given as output.
+  output <- list()
+  output[[1]] <- iter
+  output[[2]] <- llik
+  output[[3]] <- llik_decrement
+  
+  return(output)
+}
 
 
 ##############################################################################################
@@ -194,148 +561,166 @@ return(output)
 #- tol: the EM algorithm stops when an additional iteration increases the log-likelihood by less than tol.
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 
-nested_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1){
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# CREATE USEFUL QUANTITIES (following the notation in the paper)
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-mframe <- model.frame(formula, data)
-y <- model.response(mframe)
-x <- model.matrix(formula, mframe)
-n <- nrow(y)
-J <- ncol(y)
-K.j <- t(matrix(apply(y, 2, max)))
-R <- nclass
-P <- ncol(x)
-
-# dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
-dll <- Inf
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# CREATE THE QUANTITIES TO BE SAVED
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# llik denotes the log-likelihood sequence
-llik <- rep(NA,maxiter)
-# llik_decrement is a vector monitoring drops in the log-likelihood sequence.
-llik_decrement <- rep(NA,maxiter)
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# INITIALIZE THE PARAMETERS
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-set.seed(seed)
-#------------------------------------------------
-# Conditional Probabilities (pi) ----------------
-#------------------------------------------------
-probs <- list()
-for (j in 1:J) {
-probs[[j]] <- matrix(runif(R * K.j[j]), nrow = R, ncol = K.j[j])
-probs[[j]] <- probs[[j]]/rowSums(probs[[j]])}
-probs.init <- probs
-vp <- poLCA:::poLCA.vectorize(probs)
-
-#------------------------------------------------
-# Beta Coefficients (beta) ----------------------
-#------------------------------------------------
-b <- rnorm(P*(R - 1), 0, 0.1)	
-
-#------------------------------------------------
-# Log-likelihood at the initial values-----------
-#------------------------------------------------
-prior <- poLCA:::poLCA.updatePrior(b, x, R)
-
-iter <- 1
-llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
-llik_decrement[iter] <- (dll < -1e-07)*1
-
-#---------------------------------------------------------------------------------------------
-##############################################################################################
-# ALGORITHM
-##############################################################################################
-#---------------------------------------------------------------------------------------------
-while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter]))){
-#--------------------------------------------------------------------------------
-iter <- iter + 1
-#--------------------------------------------------------------------------------
-
-#--------------------------------------------------------------------------------
-# E-STEP	
-#--------------------------------------------------------------------------------
-# Compute the conditional expectation of the latent class indicators for each unit
-rgivy <- poLCA:::poLCA.postClass.C(prior, vp, y)
-
-#--------------------------------------------------------------------------------
-# M-STEP	
-#--------------------------------------------------------------------------------
-# M-STEP for pi:
-# Maximize the probabilities of each categorical variable within every class
-vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
-
-# M-STEP for beta:
-# Maximize the beta coefficiens in the multinomial logit for the classes via Pòlya-Gamma
-for (j in 2:R) {
-               #----------------------------------------------------------------------------
-               # Create the matrix of the current beta coefficients
-               beta <- cbind(rep(0, P), matrix(b, P, R - 1))
-               # Compute quantities a_i as defined in the paper
-               a_i <- log(rowSums(exp(x %*% beta[, -j])))
-               #----------------------------------------------------------------------------
-               # NESTED E-STEP
-               #----------------------------------------------------------------------------
-               # Update the expectation of the latent class indicators for each unit
-               E_s <- poLCA:::poLCA.postClass.C(poLCA:::poLCA.updatePrior(b, x, R),  vp, y)
-               # Compute the expectation of the Pòlya-Gamma variables for each unit
-               eta_j <- (x %*% beta[, j] - a_i)
-               E_w <- 0.5 * as.double(tanh(0.5 * eta_j)/eta_j)
-               #----------------------------------------------------------------------------
-               # NESTED M-STEP
-               #----------------------------------------------------------------------------
-               # Update beta_j via Generalized Least Squares
-               eta <- cbind((E_s[, j] - 0.5 + E_w * a_i)/E_w)
-               beta[, j]  <-  solve(crossprod(x*sqrt(E_w)), crossprod(x,E_w*eta))
-               b <- as.double(beta[, -1])
-               }              
-prior <- poLCA:::poLCA.updatePrior(b, x, R)
-
-#--------------------------------------------------------------------------------
-# UPDATE THE QUANTITIES TO BE MONITORED
-#--------------------------------------------------------------------------------
-#----------------------------------------------
-# Log-Likelihood Sequence ---------------------
-#----------------------------------------------
-llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
-
-#----------------------------------------------
-# Decrement (0 if no decay, 1 if decay) -------
-#----------------------------------------------
-llik_decrement[iter] <- (dll < -1e-07)*1
-
-#--------------------------------------------------------------------------------
-# COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
-#--------------------------------------------------------------------------------
-dll <- llik[iter] - llik[iter - 1]}
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# OUTPUT OF THE ALGORITHM
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# NOTE: In the paper we focus on the computational properties of the algorithms and 
-# therefore we output the number of iterations for convergence, the log-likelihood 
-# sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when 
-# providing inference on the model, also the estimates of the parameters beta (b) 
-# and the probabilities of the categorical variables y within each latent class (pi) 
-# should be given as output.
-output <- list()
-output[[1]] <- iter
-output[[2]] <- llik
-output[[3]] <- llik_decrement
-
-return(output)
+nested_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, sigma_init=0.5){
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE USEFUL QUANTITIES (following the notation in the paper)
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  mframe <- model.frame(formula, data)
+  y <- model.response(mframe)
+  x <- model.matrix(formula, mframe)
+  n <- nrow(y)
+  J <- ncol(y)
+  K.j <- t(matrix(apply(y, 2, max)))
+  R <- nclass
+  P <- ncol(x)
+  
+  # dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
+  dll <- Inf
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE THE QUANTITIES TO BE SAVED
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # llik denotes the log-likelihood sequence
+  llik <- rep(NA,maxiter)
+  # llik_decrement is a vector monitoring drops in the log-likelihood sequence.
+  llik_decrement <- rep(NA,maxiter)
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # INITIALIZE THE PARAMETERS
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  set.seed(seed)
+  #------------------------------------------------
+  # Conditional Probabilities (pi) ----------------
+  #------------------------------------------------
+  probs <- list()
+  for (j in 1:J) {
+    probs[[j]] <- matrix(runif(R * K.j[j]), nrow = R, ncol = K.j[j])
+    probs[[j]] <- probs[[j]]/rowSums(probs[[j]])}
+  probs.init <- probs
+  vp <- poLCA:::poLCA.vectorize(probs)
+  
+  #------------------------------------------------
+  # Beta Coefficients (beta) ----------------------
+  #------------------------------------------------
+  b <- rnorm(P*(R - 1), 0, sigma_init)	
+  
+  #------------------------------------------------
+  # Log-likelihood at the initial values-----------
+  #------------------------------------------------
+  prior <- update_probs(b, x, R, n, P)
+  
+  #--------------------------------------------------------------------------------
+  # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+  if (sum((apply(prior,2,sum)==0))==0){
+    prior_tune <- prior} else {
+      prior_tune <- prior
+      prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+      prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+  #--------------------------------------------------------------------------------
+  
+  iter <- 1
+  llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+  llik_decrement[iter] <- (dll < -1e-07)*1
+  
+  #---------------------------------------------------------------------------------------------
+  ##############################################################################################
+  # ALGORITHM
+  ##############################################################################################
+  #---------------------------------------------------------------------------------------------
+  while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter])) & !(llik[iter] == -Inf)){
+    #--------------------------------------------------------------------------------
+    iter <- iter + 1
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # E-STEP	
+    #--------------------------------------------------------------------------------
+    # Compute the conditional expectation of the latent class indicators for each unit
+    rgivy <- poLCA:::poLCA.postClass.C(prior_tune, vp, y)
+    
+    #--------------------------------------------------------------------------------
+    # M-STEP	
+    #--------------------------------------------------------------------------------
+    # M-STEP for pi:
+    # Maximize the probabilities of each categorical variable within every class
+    vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
+    
+    # M-STEP for beta:
+    # Maximize the beta coefficiens in the multinomial logit for the classes via Pòlya-Gamma
+    for (j in 2:R) {
+      #----------------------------------------------------------------------------
+      # Create the matrix of the current beta coefficients
+      beta <- cbind(rep(0, P), matrix(b, P, R - 1))
+      # Compute quantities a_i as defined in the paper
+      a_i <- log(rowSums(exp(x %*% beta[, -j])))
+      #----------------------------------------------------------------------------
+      # NESTED E-STEP
+      #----------------------------------------------------------------------------
+      # Update the expectation of the latent class indicators for each unit
+      E_s <- poLCA:::poLCA.postClass.C(poLCA:::poLCA.updatePrior(b, x, R),  vp, y)
+      # Compute the expectation of the Pòlya-Gamma variables for each unit
+      eta_j <- (x %*% beta[, j] - a_i)
+      E_w <- 0.5 * as.double(tanh(0.5 * eta_j)/eta_j)
+      #----------------------------------------------------------------------------
+      # NESTED M-STEP
+      #----------------------------------------------------------------------------
+      # Update beta_j via Generalized Least Squares
+      eta <- cbind((E_s[, j] - 0.5 + E_w * a_i)/E_w)
+      beta[, j]  <-  solve(crossprod(x*sqrt(E_w)), crossprod(x,E_w*eta))
+      b <- as.double(beta[, -1])
+    }              
+    prior <- update_probs(b, x, R, n, P)
+    
+    #--------------------------------------------------------------------------------
+    # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+    if (sum((apply(prior,2,sum)==0))==0){
+      prior_tune <- prior} else {
+        prior_tune <- prior
+        prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+        prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # UPDATE THE QUANTITIES TO BE MONITORED
+    #--------------------------------------------------------------------------------
+    #----------------------------------------------
+    # Log-Likelihood Sequence ---------------------
+    #----------------------------------------------
+    llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+    
+    #--------------------------------------------------------------------------------
+    # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
+    #--------------------------------------------------------------------------------
+    dll <- llik[iter] - llik[iter - 1]
+    
+    #----------------------------------------------
+    # Decrement (0 if no decay, 1 if decay) -------
+    #----------------------------------------------
+    llik_decrement[iter] <- (dll < -1e-07)*1}
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # OUTPUT OF THE ALGORITHM
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # NOTE: In the paper we focus on the computational properties of the algorithms and 
+  # therefore we output the number of iterations for convergence, the log-likelihood 
+  # sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when 
+  # providing inference on the model, also the estimates of the parameters beta (b) 
+  # and the probabilities of the categorical variables y within each latent class (pi) 
+  # should be given as output.
+  output <- list()
+  output[[1]] <- iter
+  output[[2]] <- llik
+  output[[3]] <- llik_decrement
+  
+  return(output)
 }
 
 
@@ -363,151 +748,171 @@ return(output)
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 #- epsilon: the nested EM switches to Newton-Raphson when an iteration increases the log-likelihood by less than epsilon.
 
-hybrid_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, epsilon=0.1){
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# CREATE USEFUL QUANTITIES (following the notation in the paper)
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-mframe <- model.frame(formula, data)
-y <- model.response(mframe)
-x <- model.matrix(formula, mframe)
-n <- nrow(y)
-J <- ncol(y)
-K.j <- t(matrix(apply(y, 2, max)))
-R <- nclass
-P <- ncol(x)
-
-# dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
-dll <- Inf
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# CREATE THE QUANTITIES TO BE SAVED
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# llik denotes the log-likelihood sequence
-llik <- rep(NA,maxiter)
-# llik_decrement is a vector monitoring drops in the log-likelihood sequence.
-llik_decrement <- rep(NA,maxiter)
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# INITIALIZE THE PARAMETERS
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-set.seed(seed)
-#------------------------------------------------
-# Conditional Probabilities (pi) ----------------
-#------------------------------------------------
-probs <- list()
-for (j in 1:J) {
-probs[[j]] <- matrix(runif(R * K.j[j]), nrow = R, ncol = K.j[j])
-probs[[j]] <- probs[[j]]/rowSums(probs[[j]])}
-probs.init <- probs
-vp <- poLCA:::poLCA.vectorize(probs)
-
-#------------------------------------------------
-# Beta Coefficients (beta) ----------------------
-#------------------------------------------------
-b <- rnorm(P*(R - 1), 0, 0.1)	
-
-#------------------------------------------------
-# Log-likelihood at the initial values-----------
-#------------------------------------------------
-prior <- poLCA:::poLCA.updatePrior(b, x, R)
-
-iter <- 1
-llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
-llik_decrement[iter] <- (dll < -1e-07)*1
-
-#---------------------------------------------------------------------------------------------
-##############################################################################################
-#ALGORITHM
-##############################################################################################
-#---------------------------------------------------------------------------------------------
-while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter]))){
-#--------------------------------------------------------------------------------
-iter <- iter + 1
-#--------------------------------------------------------------------------------
-
-#--------------------------------------------------------------------------------
-# E-STEP	
-#--------------------------------------------------------------------------------
-# Compute the conditional expectation of the latent class indicators for each unit
-rgivy <- poLCA:::poLCA.postClass.C(prior, vp, y)
-
-#--------------------------------------------------------------------------------
-# M-STEP	
-#--------------------------------------------------------------------------------
-# M-STEP for pi:
-# Maximize the probabilities of each categorical variable within every class
-vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
-
-# M-STEP for beta:
-# Maximize the beta coefficiens in the multinomial logit for the classes via Pòlya-Gamma or Newton-Raphson
-if (dll>epsilon) {
-	       for (j in 2:R) {
-               #----------------------------------------------------------------------------
-               # Create the matrix of the current beta coefficients
-               beta <- cbind(rep(0, P), matrix(b, P, R - 1))
-               # Compute quantities a_i as defined in the paper
-               a_i <- log(rowSums(exp(x %*% beta[, -j])))
-               #----------------------------------------------------------------------------
-               # NESTED E-STEP
-               #----------------------------------------------------------------------------
-               # Update the expectation of the latent class indicators for each unit
-               E_s <- poLCA:::poLCA.postClass.C(poLCA:::poLCA.updatePrior(b, x, R),  vp, y)
-               # Compute the expectation of the Pòlya-Gamma variables for each unit
-               eta_j <- (x %*% beta[, j] - a_i)
-               E_w <- 0.5 * as.double(tanh(0.5 * eta_j)/eta_j)
-               #----------------------------------------------------------------------------
-               # NESTED M-STEP
-               #----------------------------------------------------------------------------
-               # Update Beta_j via Generalized Least Squares
-               eta <- cbind((E_s[, j] - 0.5 + E_w * a_i)/E_w)
-               beta[, j]  <-  solve(crossprod(x*sqrt(E_w)), crossprod(x,E_w*eta))
-               b <- as.double(beta[, -1])
-               }} else {
-dd <- poLCA:::poLCA.dLL2dBeta.C(rgivy, prior, x)
-b <- b + ginv(-dd$hess) %*% dd$grad}      
-prior <- poLCA:::poLCA.updatePrior(b, x, R)
-
-#--------------------------------------------------------------------------------
-# UPDATE THE QUANTITIES TO BE MONITORED
-#--------------------------------------------------------------------------------
-#----------------------------------------------
-# Log-Likelihood Sequence ---------------------
-#----------------------------------------------
-llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
-
-#----------------------------------------------
-# Decrement (0 if no decay, 1 if decay) -------
-#----------------------------------------------
-llik_decrement[iter] <- (dll < -1e-07)*1
-
-#--------------------------------------------------------------------------------
-# COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
-#--------------------------------------------------------------------------------
-dll <- llik[iter] - llik[iter - 1]}
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# OUTPUT OF THE ALGORITHM
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# NOTE: In the paper we focus on the computational properties of the algorithms and 
-# therefore we output the number of iterations for convergence, the log-likelihood 
-# sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when 
-# providing inference on the model, also the estimates of the parameters beta (b) and 
-# the probabilities of the categorical variables y within each latent class (pi) 
-# should be given as output.
-output <- list()
-output[[1]] <- iter
-output[[2]] <- llik
-output[[3]] <- llik_decrement
-
-return(output)
+hybrid_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, epsilon=0.01, sigma_init=0.5){
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE USEFUL QUANTITIES (following the notation in the paper)
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  mframe <- model.frame(formula, data)
+  y <- model.response(mframe)
+  x <- model.matrix(formula, mframe)
+  n <- nrow(y)
+  J <- ncol(y)
+  K.j <- t(matrix(apply(y, 2, max)))
+  R <- nclass
+  P <- ncol(x)
+  
+  # dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
+  dll <- Inf
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE THE QUANTITIES TO BE SAVED
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # llik denotes the log-likelihood sequence
+  llik <- rep(NA,maxiter)
+  # llik_decrement is a vector monitoring drops in the log-likelihood sequence.
+  llik_decrement <- rep(NA,maxiter)
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # INITIALIZE THE PARAMETERS
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  set.seed(seed)
+  #------------------------------------------------
+  # Conditional Probabilities (pi) ----------------
+  #------------------------------------------------
+  probs <- list()
+  for (j in 1:J) {
+    probs[[j]] <- matrix(runif(R * K.j[j]), nrow = R, ncol = K.j[j])
+    probs[[j]] <- probs[[j]]/rowSums(probs[[j]])}
+  probs.init <- probs
+  vp <- poLCA:::poLCA.vectorize(probs)
+  
+  #------------------------------------------------
+  # Beta Coefficients (beta) ----------------------
+  #------------------------------------------------
+  b <- rnorm(P*(R - 1), 0, sigma_init)	
+  
+  #------------------------------------------------
+  # Log-likelihood at the initial values-----------
+  #------------------------------------------------
+  prior <- update_probs(b, x, R, n, P)
+  
+  #--------------------------------------------------------------------------------
+  # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+  if (sum((apply(prior,2,sum)==0))==0){
+    prior_tune <- prior} else {
+      prior_tune <- prior
+      prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+      prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+  #--------------------------------------------------------------------------------
+  
+  iter <- 1
+  llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+  llik_decrement[iter] <- (dll < -1e-07)*1
+  
+  #---------------------------------------------------------------------------------------------
+  ##############################################################################################
+  #ALGORITHM
+  ##############################################################################################
+  #---------------------------------------------------------------------------------------------
+  while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter])) & !(llik[iter] == -Inf)){
+    #--------------------------------------------------------------------------------
+    iter <- iter + 1
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # E-STEP	
+    #--------------------------------------------------------------------------------
+    # Compute the conditional expectation of the latent class indicators for each unit
+    rgivy <- poLCA:::poLCA.postClass.C(prior_tune, vp, y)
+    
+    #--------------------------------------------------------------------------------
+    # M-STEP	
+    #--------------------------------------------------------------------------------
+    # M-STEP for pi:
+    # Maximize the probabilities of each categorical variable within every class
+    vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
+    
+    # M-STEP for beta:
+    # Maximize the beta coefficiens in the multinomial logit for the classes via Pòlya-Gamma or Newton-Raphson
+    if (abs(dll)>epsilon) {
+      for (j in 2:R) {
+        #----------------------------------------------------------------------------
+        # Create the matrix of the current beta coefficients
+        beta <- cbind(rep(0, P), matrix(b, P, R - 1))
+        # Compute quantities a_i as defined in the paper
+        a_i <- log(rowSums(exp(x %*% beta[, -j])))
+        #----------------------------------------------------------------------------
+        # NESTED E-STEP
+        #----------------------------------------------------------------------------
+        # Update the expectation of the latent class indicators for each unit
+        E_s <- poLCA:::poLCA.postClass.C(poLCA:::poLCA.updatePrior(b, x, R),  vp, y)
+        # Compute the expectation of the Pòlya-Gamma variables for each unit
+        eta_j <- (x %*% beta[, j] - a_i)
+        E_w <- 0.5 * as.double(tanh(0.5 * eta_j)/eta_j)
+        #----------------------------------------------------------------------------
+        # NESTED M-STEP
+        #----------------------------------------------------------------------------
+        # Update Beta_j via Generalized Least Squares
+        eta <- cbind((E_s[, j] - 0.5 + E_w * a_i)/E_w)
+        beta[, j]  <-  solve(crossprod(x*sqrt(E_w)), crossprod(x,E_w*eta))
+        b <- as.double(beta[, -1])
+      }} else {
+        dd_grad <- poLCA:::poLCA.dLL2dBeta.C(rgivy, prior, x)
+        dd_hes <- poLCA:::poLCA.dLL2dBeta.C(matrix(0,n,R), prior, x)
+        b <- b + ginv(-dd_hes$hess) %*% dd_grad$grad}
+    
+    prior <- update_probs(b, x, R, n, P)
+    
+    #--------------------------------------------------------------------------------
+    # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+    if (sum((apply(prior,2,sum)==0))==0){
+      prior_tune <- prior} else {
+        prior_tune <- prior
+        prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+        prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # UPDATE THE QUANTITIES TO BE MONITORED
+    #--------------------------------------------------------------------------------
+    #----------------------------------------------
+    # Log-Likelihood Sequence ---------------------
+    #----------------------------------------------
+    llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+    
+    #--------------------------------------------------------------------------------
+    # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
+    #--------------------------------------------------------------------------------
+    dll <- llik[iter] - llik[iter - 1]
+    
+    #----------------------------------------------
+    # Decrement (0 if no decay, 1 if decay) -------
+    #----------------------------------------------
+    llik_decrement[iter] <- (dll < -1e-07)*1}
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # OUTPUT OF THE ALGORITHM
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # NOTE: In the paper we focus on the computational properties of the algorithms and 
+  # therefore we output the number of iterations for convergence, the log-likelihood 
+  # sequence, and the decrements (if any) in the log-likelihood sequence. Clearly when 
+  # providing inference on the model, also the estimates of the parameters beta (b) and 
+  # the probabilities of the categorical variables y within each latent class (pi) 
+  # should be given as output.
+  output <- list()
+  output[[1]] <- iter
+  output[[2]] <- llik
+  output[[3]] <- llik_decrement
+  
+  return(output)
 }
 
 
@@ -537,120 +942,138 @@ return(output)
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 
 unconditional_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1){
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# CREATE USEFUL QUANTITIES (following the notation in the paper)
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-mframe <- model.frame(formula, data)
-y <- model.response(mframe)
-x <- model.matrix(formula, mframe)
-n <- nrow(y)
-J <- ncol(y)
-K.j <- t(matrix(apply(y, 2, max)))
-R <- nclass
-P <- ncol(x)
-
-# dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
-dll <- Inf
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# CREATE THE QUANTITIES TO BE SAVED
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# llik denotes the log-likelihood sequence
-llik <- rep(NA,maxiter)
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# INITIALIZE THE PARAMETERS
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-set.seed(seed)
-#------------------------------------------------
-# Conditional Probabilities (pi) ----------------
-#------------------------------------------------
-probs <- list()
-for (j in 1:J) {
-probs[[j]] <- matrix(runif(R * K.j[j]), nrow = R, ncol = K.j[j])
-probs[[j]] <- probs[[j]]/rowSums(probs[[j]])}
-probs.init <- probs
-vp <- poLCA:::poLCA.vectorize(probs)
-
-#------------------------------------------------
-# Beta Coefficients (beta) ----------------------
-#------------------------------------------------
-b <- rep(0, P * (R - 1))	
-
-#------------------------------------------------
-# Log-likelihood at the initial values-----------
-#------------------------------------------------
-prior <- poLCA:::poLCA.updatePrior(b, x, R)
-
-iter <- 1
-llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
-
-#---------------------------------------------------------------------------------------------
-##############################################################################################
-#ALGORITHM
-##############################################################################################
-#---------------------------------------------------------------------------------------------
-while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter]))){
-#--------------------------------------------------------------------------------
-iter <- iter + 1
-#--------------------------------------------------------------------------------
-
-#--------------------------------------------------------------------------------
-# E-STEP	
-#--------------------------------------------------------------------------------
-# Compute the conditional expectation of the latent class indicators for each unit
-rgivy <- poLCA:::poLCA.postClass.C(prior, vp, y)
-
-#--------------------------------------------------------------------------------
-# M-STEP	
-#--------------------------------------------------------------------------------
-# M-STEP for pi:
-# Maximize analytically the probabilities of each categorical variable within every class
-vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
-
-# M-STEP for b:
-# Maximize analytically the log-odds of the unconditional latent class probabilities
-b <- log((apply(rgivy,2,sum)/n)[2:R]/((apply(rgivy,2,sum)/n)[1]))
-
-prior <- poLCA:::poLCA.updatePrior(b, x, R)
-
-#--------------------------------------------------------------------------------
-# UPDATE THE QUANTITIES TO BE MONITORED
-#--------------------------------------------------------------------------------
-#----------------------------------------------
-# Log-Likelihood Sequence ---------------------
-#----------------------------------------------
-llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
-
-#--------------------------------------------------------------------------------
-# COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
-#--------------------------------------------------------------------------------
-dll <- llik[iter] - llik[iter - 1]}
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# OUTPUT OF THE ALGORITHM
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# NOTE: Here we output also the parameters estimates and the conditional probabilities 
-# of the latent classes for each statistical unit at convergence since they are required 
-# at steps 2 and 3 of the three--step methods. We do not monitor instead decays in the 
-# log-likelihood sequence, since the EM for unconditional latent class models is a pure 
-# EM algorithm.
-output <- list()
-output[[1]] <- iter
-output[[2]] <- llik
-output[[3]] <- vp
-output[[4]] <- poLCA:::poLCA.postClass.C(prior, vp, y)
-output[[5]] <- prior
-
-return(output)
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE USEFUL QUANTITIES (following the notation in the paper)
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  mframe <- model.frame(formula, data)
+  y <- model.response(mframe)
+  x <- model.matrix(formula, mframe)
+  n <- nrow(y)
+  J <- ncol(y)
+  K.j <- t(matrix(apply(y, 2, max)))
+  R <- nclass
+  P <- ncol(x)
+  
+  # dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
+  dll <- Inf
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE THE QUANTITIES TO BE SAVED
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # llik denotes the log-likelihood sequence
+  llik <- rep(NA,maxiter)
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # INITIALIZE THE PARAMETERS
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  set.seed(seed)
+  #------------------------------------------------
+  # Conditional Probabilities (pi) ----------------
+  #------------------------------------------------
+  probs <- list()
+  for (j in 1:J) {
+    probs[[j]] <- matrix(runif(R * K.j[j]), nrow = R, ncol = K.j[j])
+    probs[[j]] <- probs[[j]]/rowSums(probs[[j]])}
+  probs.init <- probs
+  vp <- poLCA:::poLCA.vectorize(probs)
+  
+  #------------------------------------------------
+  # Beta Coefficients (beta) ----------------------
+  #------------------------------------------------
+  b <- rep(0, P * (R - 1))	
+  
+  #------------------------------------------------
+  # Log-likelihood at the initial values-----------
+  #------------------------------------------------
+  prior <- update_probs(b, x, R, n, P)
+  
+  #--------------------------------------------------------------------------------
+  # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+  if (sum((apply(prior,2,sum)==0))==0){
+    prior_tune <- prior} else {
+      prior_tune <- prior
+      prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+      prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+  #--------------------------------------------------------------------------------
+  
+  iter <- 1
+  llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+  
+  #---------------------------------------------------------------------------------------------
+  ##############################################################################################
+  #ALGORITHM
+  ##############################################################################################
+  #---------------------------------------------------------------------------------------------
+  while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter])) & !(llik[iter] == -Inf)){
+    #--------------------------------------------------------------------------------
+    iter <- iter + 1
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # E-STEP	
+    #--------------------------------------------------------------------------------
+    # Compute the conditional expectation of the latent class indicators for each unit
+    rgivy <- poLCA:::poLCA.postClass.C(prior_tune, vp, y)
+    
+    #--------------------------------------------------------------------------------
+    # M-STEP	
+    #--------------------------------------------------------------------------------
+    # M-STEP for pi:
+    # Maximize analytically the probabilities of each categorical variable within every class
+    vp$vecprobs <- poLCA:::poLCA.probHat.C(rgivy, y, vp)
+    
+    # M-STEP for b:
+    # Maximize analytically the log-odds of the unconditional latent class probabilities
+    b <- log((apply(rgivy,2,sum)/n)[2:R]/((apply(rgivy,2,sum)/n)[1]))
+    
+    prior <- update_probs(b, x, R, n, P)
+    
+    #--------------------------------------------------------------------------------
+    # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+    if (sum((apply(prior,2,sum)==0))==0){
+      prior_tune <- prior} else {
+        prior_tune <- prior
+        prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+        prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # UPDATE THE QUANTITIES TO BE MONITORED
+    #--------------------------------------------------------------------------------
+    #----------------------------------------------
+    # Log-Likelihood Sequence ---------------------
+    #----------------------------------------------
+    llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+    
+    #--------------------------------------------------------------------------------
+    # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
+    #--------------------------------------------------------------------------------
+    dll <- llik[iter] - llik[iter - 1]}
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # OUTPUT OF THE ALGORITHM
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # NOTE: Here we output also the parameters estimates and the conditional probabilities 
+  # of the latent classes for each statistical unit at convergence since they are required 
+  # at steps 2 and 3 of the three--step methods. We do not monitor instead decays in the 
+  # log-likelihood sequence, since the EM for unconditional latent class models is a pure 
+  # EM algorithm.
+  output <- list()
+  output[[1]] <- iter
+  output[[2]] <- llik
+  output[[3]] <- vp
+  output[[4]] <- poLCA:::poLCA.postClass.C(prior, vp, y)
+  output[[5]] <- prior
+  
+  return(output)
 }
 
 
@@ -678,112 +1101,130 @@ return(output)
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 #- classification_error: classification error table from step 2, required for bias correction.
 
-correction_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, classification_error=class_err){
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# CREATE USEFUL QUANTITIES (following the notation in the paper)
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-mframe <- model.frame(formula, data)
-y <- model.response(mframe)
-x <- model.matrix(formula, mframe)
-n <- nrow(x)
-y <- matrix(y,n,1)
-J <- ncol(y)
-R <- nclass
-P <- ncol(x)
-
-# dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
-dll <- Inf
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# CREATE THE QUANTITIES TO BE SAVED
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# llik denotes the log-likelihood sequence
-llik <- rep(NA,maxiter)
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# INITIALIZE THE PARAMETERS
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-set.seed(seed)
-#------------------------------------------------
-# Conditional Probabilities (pi) ----------------
-#------------------------------------------------
-# NOTE: These quantities are fixed during all the routine, since the EM required in step 3 
-# of the correction procedure proposed by Vermunt (2010) has a single categorical response 
-# whose probabilities within each class coincides with the classification error probabilities 
-# computed from step 2.
-probs <- list()
-probs[[1]] <- classification_error
-probs.init <- probs
-vp <- poLCA:::poLCA.vectorize(probs)
-
-#------------------------------------------------
-# Beta Coefficients (beta) ----------------------
-#------------------------------------------------
-b <- rnorm(P*(R - 1), 0, 0.1)	
-
-#------------------------------------------------
-# Log-likelihood at the initial values-----------
-#------------------------------------------------
-prior <- poLCA:::poLCA.updatePrior(b, x, R)
-
-iter <- 1
-llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
-
-#---------------------------------------------------------------------------------------------
-##############################################################################################
-#ALGORITHM
-##############################################################################################
-#---------------------------------------------------------------------------------------------
-while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter]))){
-#--------------------------------------------------------------------------------
-iter <- iter + 1
-#--------------------------------------------------------------------------------
-
-#--------------------------------------------------------------------------------
-# E-STEP	
-#--------------------------------------------------------------------------------
-# Compute the conditional expectation of the latent class indicators for each unit
-rgivy <- poLCA:::poLCA.postClass.C(prior, vp, y)
-
-#--------------------------------------------------------------------------------
-# M-STEP	
-#--------------------------------------------------------------------------------
-# Only the coefficient beta require maximization here. We use Newton-Raphson as in LATENT GOLD.
-# Maximize the beta coefficiens in the multinomial logit for the classes via Newton-Raphson
-dd <- poLCA:::poLCA.dLL2dBeta.C(rgivy, prior, x)
-b <- b + ginv(-dd$hess) %*% dd$grad
-prior <- poLCA:::poLCA.updatePrior(b, x, R)
-
-#--------------------------------------------------------------------------------
-# UPDATE THE QUANTITIES TO BE MONITORED
-#--------------------------------------------------------------------------------
-#----------------------------------------------
-# Log-Likelihood Sequence ---------------------
-#----------------------------------------------
-llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
-
-#--------------------------------------------------------------------------------
-# COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
-#--------------------------------------------------------------------------------
-dll <- llik[iter] - llik[iter - 1]}
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# OUTPUT OF THE ALGORITHM
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-# NOTE: Here we output also the parameters estimates for b to then evaluate the 
-# full--model log-likelihood for comparison with one-step methods.
-output <- list()
-output[[1]] <- iter
-output[[2]] <- llik
-output[[3]] <- b
-
-return(output)
+correction_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, classification_error=class_err, sigma_init=0.5){
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE USEFUL QUANTITIES (following the notation in the paper)
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  mframe <- model.frame(formula, data)
+  y <- model.response(mframe)
+  x <- model.matrix(formula, mframe)
+  n <- nrow(x)
+  y <- matrix(y,n,1)
+  J <- ncol(y)
+  R <- nclass
+  P <- ncol(x)
+  
+  # dll denotes the variation in the log-likelihood sequence at iteration t, to decide when to stop the routine.
+  dll <- Inf
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # CREATE THE QUANTITIES TO BE SAVED
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # llik denotes the log-likelihood sequence
+  llik <- rep(NA,maxiter)
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # INITIALIZE THE PARAMETERS
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  set.seed(seed)
+  #------------------------------------------------
+  # Conditional Probabilities (pi) ----------------
+  #------------------------------------------------
+  # NOTE: These quantities are fixed during all the routine, since the EM required in step 3 
+  # of the correction procedure proposed by Vermunt (2010) has a single categorical response 
+  # whose probabilities within each class coincides with the classification error probabilities 
+  # computed from step 2.
+  probs <- list()
+  probs[[1]] <- classification_error
+  probs.init <- probs
+  vp <- poLCA:::poLCA.vectorize(probs)
+  
+  #------------------------------------------------
+  # Beta Coefficients (beta) ----------------------
+  #------------------------------------------------
+  b <- rnorm(P*(R - 1), 0, sigma_init)	
+  
+  #------------------------------------------------
+  # Log-likelihood at the initial values-----------
+  #------------------------------------------------
+  prior <- update_probs(b, x, R, n, P)
+  
+  #--------------------------------------------------------------------------------
+  # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+  if (sum((apply(prior,2,sum)==0))==0){
+    prior_tune <- prior} else {
+      prior_tune <- prior
+      prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+      prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+  #--------------------------------------------------------------------------------
+  
+  iter <- 1
+  llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp,y))))
+  
+  #---------------------------------------------------------------------------------------------
+  ##############################################################################################
+  #ALGORITHM
+  ##############################################################################################
+  #---------------------------------------------------------------------------------------------
+  while ((iter < maxiter)  & (abs(dll) > tol)  & (!is.na(llik[iter])) & !(llik[iter] == -Inf)){
+    #--------------------------------------------------------------------------------
+    iter <- iter + 1
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # E-STEP	
+    #--------------------------------------------------------------------------------
+    # Compute the conditional expectation of the latent class indicators for each unit
+    rgivy <- poLCA:::poLCA.postClass.C(prior_tune, vp, y)
+    
+    #--------------------------------------------------------------------------------
+    # M-STEP	
+    #--------------------------------------------------------------------------------
+    # Only the coefficient beta require maximization here. We use Newton-Raphson as in LATENT GOLD.
+    # Maximize the beta coefficiens in the multinomial logit for the classes via Newton-Raphson
+    dd <- poLCA:::poLCA.dLL2dBeta.C(rgivy, prior, x)
+    b <- b + ginv(-dd$hess) %*% dd$grad
+    prior <- update_probs(b, x, R, n, P)
+    
+    #--------------------------------------------------------------------------------
+    # For computational purposes (R sets very high numbers to Infinity leading to NA in the predicted class probabilities in some situations)
+    if (sum((apply(prior,2,sum)==0))==0){
+      prior_tune <- prior} else {
+        prior_tune <- prior
+        prior_tune[,which(apply(prior,2,sum)==0)] <- 1e-100
+        prior_tune <- prior_tune/apply(prior_tune,1,sum)}
+    #--------------------------------------------------------------------------------
+    
+    #--------------------------------------------------------------------------------
+    # UPDATE THE QUANTITIES TO BE MONITORED
+    #--------------------------------------------------------------------------------
+    #----------------------------------------------
+    # Log-Likelihood Sequence ---------------------
+    #----------------------------------------------
+    llik[iter] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(vp, y))))
+    
+    #--------------------------------------------------------------------------------
+    # COMPUTE THE INCREMENT TO STUDY THE STATUS OF CONVERGENCE
+    #--------------------------------------------------------------------------------
+    dll <- llik[iter] - llik[iter - 1]}
+  
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # OUTPUT OF THE ALGORITHM
+  #-------------------------------------------------------------------------------
+  #-------------------------------------------------------------------------------
+  # NOTE: Here we output also the parameters estimates for b to then evaluate the 
+  # full--model log-likelihood for comparison with one-step methods.
+  output <- list()
+  output[[1]] <- iter
+  output[[2]] <- llik
+  output[[3]] <- b
+  
+  return(output)
 }
