@@ -60,14 +60,14 @@ sigma <- 0.5
 ```
 
 
-Estimation under the different routines with `R = 2` latent classes
+Estimation with R = 2 latent classes
 ================
 
 We perform estimation of the parameters in the above latent class model with covariates under different computational routines (including our novel **nested EM** algorithm), and compare maximization performance along with computational efficiency.
 
 Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we first focus on the model with `R = 2` latent classes.
 
-#### 1. EM algorithm with Newton-Raphson methods as in Bandeen-Roche et al. (1997) (one-step maximization)
+#### 1. EM algorithm with Newton-Raphson methods as in Bandeen-Roche et al. (1997) (one-step)
 
 Here we consider the one-step EM algorithm with Newton-Raphson methods proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407), and discussed in Section 1.1 of our paper. This requires the function `newton_em()` in the source file `LCA-Covariates-Algorithms.R` we uploaded before.
 
@@ -97,10 +97,10 @@ llik_decrement_NR_EM[rep,] <- fit_NR_EM[[3]]}
 )[3]
 ```
 
-#### 2. EM algorithm with Newton-Raphson methods as in Formann (1992) and Van der Heijden et al.(1996) (one-step maximization)
+#### 2. EM algorithm with Newton-Raphson methods as in Formann (1992) and Van der Heijden et al.(1996) (one-step)
 
 
-#### 2. Re-scaled EM algorithm with Newton-Raphson methods (one-step maximization)
+#### 2. Re-scaled EM algorithm with Newton-Raphson methods (one-step)
 
 Here we consider the re-scaled version of the above one-step EM algorithm with Newton-Raphson methods. This modification is discussed in Section 1.1 of our paper, and its general version can be found in Chapter 1.5.6 of [McLachlan and Krishnan (2007)](http://onlinelibrary.wiley.com/book/10.1002/9780470191613). Also this algorithm requires the function `newton_em()` in the source file `LCA-Covariates-Algorithms.R` we uploaded before. However, now the parameter 0 &lt; *α* &lt; 1 should be modified to reduce concerns about drops in the log-likelihood sequence. Here we consider:
 
@@ -164,7 +164,7 @@ llik_decrement_NR_EM_alpha_0.25[rep,] <- fit_NR_EM[[3]]}
 )[3]
 ```
 
-#### 3. Classical 3-step algorithm (three-step maximization)
+#### 3. Classical 3-step algorithm (three-step)
 
 Here we consider the classical three-step strategy to estimate latent class models with covariates (e.g. [Clogg 1995](https://www.iser.essex.ac.uk/research/publications/494549)). As discussed in Section 1.2 of our paper, this algorithm consists of three steps.
 
@@ -217,7 +217,7 @@ llik_3_step_classical[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_u
 )[3]
 ```
 
-#### 4. Bias-corrected 3-step algorithm (three-step maximization)
+#### 4. Bias-corrected 3-step algorithm (three-step)
 
 Here we implement the modification proposed by [Vermunt (2010)](https://academic.oup.com/pan/article-abstract/18/4/450/1518615/Latent-Class-Modeling-with-Covariates-Two-Improved) of the classical three-step methods, in order to reduce the bias of the estimators. This strategy is discussed in Sections 1.2 and 4 of our paper, and proceed as follows:
 
@@ -279,7 +279,7 @@ llik_3_step_corrected[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_u
 )[3]
 ```
 
-#### 5. Nested EM algorithm (one-step maximization)
+#### 5. Nested EM algorithm (one-step)
 
 We now implement our **nested EM** algorithm for improved one-step estimation of latent class models with covariates. This routine is carefully described in Section 2.2 of our paper, and leverages the recently developed Pòlya-Gamma data augmentation ([Polson et al. 2013](http://www.tandfonline.com/doi/abs/10.1080/01621459.2013.829001)). The implementation requires the function `nested_em()` in the source file `LCA-Covariates-Algorithms.R`.
 
@@ -301,7 +301,7 @@ llik_decrement_NEM[rep,] <- fit_NEM[[3]]}
 )[3]
 ```
 
-#### 6. Hybrid nested EM algorithm (one-step maximization)
+#### 6. Hybrid nested EM algorithm (one-step)
 
 Here we consider a more efficient hybrid version of the **nested EM** algorithm which reaches a neighborhood of the maximum using the more stable **nested EM**, and then switches to Newton-Raphson methods to speed convergence. This routine is carefully described in Section 3.3 of our paper, and requires the function `hybrid_em()` in the source file `LCA-Covariates-Algorithms.R`.
 
