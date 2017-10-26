@@ -65,7 +65,7 @@ Estimation with R = 2 latent classes
 
 We perform estimation of the parameters in the above latent class model with covariates under different computational routines (including our novel **nested EM** algorithm), and compare maximization performance along with computational efficiency.
 
-Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we first focus on the model with `R = 2` latent classes.
+Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we first focus on the model with `R = 2` classes.
 
 ``` r
 n_c <- 3
@@ -102,8 +102,10 @@ llik_decrement_NR_EM[rep,] <- fit_NR_EM[[3]]}
 )[3]
 ```
 
+---
 #### 2. EM algorithm with Newton-Raphson as in Formann (1992) and Van der Heijden et al.(1996) (one-step)
 
+As discussed in the paper, the algorithm proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407) leverages a Newton-Raphson step which is based on a plug-in estimate of the Hessian computed from the full--model log-likelihood, instead of maximizing the expectation of the complete log-likelihood.
 
 #### 2. Re-scaled EM algorithm with Newton-Raphson (one-step)
 
