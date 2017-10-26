@@ -105,7 +105,7 @@ llik_decrement_NR_EM[rep,] <- fit_NR_EM[[3]]}
 ---
 #### 2. EM algorithm with Newton-Raphson as in Formann (1992) and Van der Heijden et al.(1996) (one-step)
 
-As discussed in the paper, the algorithm proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407) leverages a Newton-Raphson step which is based on a plug-in estimate of the Hessian computed from the full--model log-likelihood, instead of maximizing the expectation of the complete log-likelihood.
+As discussed in the paper, the algorithm proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407) leverages a Newton-Raphson step which is based on a plug-in estimate for the Hessian of the full-model log-likelihood, instead of maximizing the expectation of the complete log-likelihood. A more formal approach implemented in [Formann (1992)] and [Van der Heijden et al.(1996)]
 
 #### 2. Re-scaled EM algorithm with Newton-Raphson (one-step)
 
