@@ -737,7 +737,7 @@ nested_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, se
 # EM proposed in Section 2.2. In particular the routine reaches a neighborhood of the maximum 
 # using the more stable nested EM, and then switches to Newton-Raphson to speed convergence.
 
-# DETAILS OF THE METHODOLOGY: This type of EM is carefully discussed in Section 3.3 of the paper.
+# DETAILS OF THE METHODOLOGY: This type of EM is carefully discussed in Section 2.3 of the paper.
 
 # DETAILS OF THE INPUT QUANTITIES:
 #- formula: defines the latent class model with covariates to be estimated (as in the poLCA library).
@@ -1090,7 +1090,7 @@ unconditional_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e
 # DESCRIPTION: Implement the EM algorithm for the bias correction proposed by Vermunt (2010) 
 # in step 3 of the three-step estimating procedure for latent class models with covariates.
 
-# DETAILS OF THE METHODOLOGY: This EM is discussed in Sections 1.2 and 4 in the paper, as well as in Vermunt (2010).
+# DETAILS OF THE METHODOLOGY: This EM is discussed in Sections 1.2 in the paper, as well as in Vermunt (2010).
 
 # DETAILS OF THE INPUT QUANTITIES:
 #- formula: defines the latent class model with covariates to be estimated (as in the poLCA library).
