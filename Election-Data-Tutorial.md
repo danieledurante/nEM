@@ -67,7 +67,8 @@ We perform estimation of the parameters in the above latent class model with cov
 
 Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we first focus on the model with `R = 2` latent classes.
 
-#### 1. EM algorithm with Newton-Raphson methods as in Bandeen-Roche et al. (1997) (one-step)
+---
+#### 1. EM algorithm with Newton-Raphson as in Bandeen-Roche et al. (1997) (one-step)
 
 Here we consider the one-step EM algorithm with Newton-Raphson methods proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407), and discussed in Section 1.1 of our paper. This requires the function `newton_em()` in the source file `LCA-Covariates-Algorithms.R` we uploaded before.
 
@@ -97,10 +98,10 @@ llik_decrement_NR_EM[rep,] <- fit_NR_EM[[3]]}
 )[3]
 ```
 
-#### 2. EM algorithm with Newton-Raphson methods as in Formann (1992) and Van der Heijden et al.(1996) (one-step)
+#### 2. EM algorithm with Newton-Raphson as in Formann (1992) and Van der Heijden et al.(1996) (one-step)
 
 
-#### 2. Re-scaled EM algorithm with Newton-Raphson methods (one-step)
+#### 2. Re-scaled EM algorithm with Newton-Raphson (one-step)
 
 Here we consider the re-scaled version of the above one-step EM algorithm with Newton-Raphson methods. This modification is discussed in Section 1.1 of our paper, and its general version can be found in Chapter 1.5.6 of [McLachlan and Krishnan (2007)](http://onlinelibrary.wiley.com/book/10.1002/9780470191613). Also this algorithm requires the function `newton_em()` in the source file `LCA-Covariates-Algorithms.R` we uploaded before. However, now the parameter 0 &lt; *α* &lt; 1 should be modified to reduce concerns about drops in the log-likelihood sequence. Here we consider:
 
