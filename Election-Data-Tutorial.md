@@ -7,7 +7,7 @@ Description
 
 This tutorial implementation focuses on assessing the maximization performance and the computational efficiency of the different algorithms for the estimation of latent class models with covariates. In particular, this assessment considers the dataset `election` from the `R` library [`poLCA`](https://www.jstatsoft.org/article/view/v042i10).
 
-The analyses reproduce those discussed in Section 3.2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864), where we propose a novel **nested EM** algorithm for improved maximum likelihood estimation of latent class models with covariates.
+The analyses reproduce those discussed in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864), where we propose a novel **nested EM** algorithm for improved maximum likelihood estimation of latent class models with covariates.
 
 Load the source functions and the data
 ================
@@ -44,35 +44,30 @@ Since the main focus is on comparing the computational performance of the differ
 election <- na.omit(election)
 ```
 
-Consistent with the analyses in Section 3.2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864), we focus on the latent class model for the `J = 12` categorical evaluations of the candidates Al Gore and George Bush, with the variable `PARTY` (affiliation party) as a covariate in the multinomial logistic regression for the latent classes. Using the syntax of the library `poLCA`, this model can be defined as follows:
+Consistent with the analyses in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864), we focus on the latent class model for the `J = 12` categorical evaluations of the candidates Al Gore and George Bush, with the variable `PARTY` (affiliation party) as a covariate in the multinomial logistic regression for the latent classes. Using the syntax of the library `poLCA`, this model can be defined as follows:
 
 ``` r
 f_election <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
                     MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
 ```
 
-To provide a detailed computational assessment, we perform estimation under the different algorithms for `Rep_Tot = 100` runs at varying initializations. For each run, the algorithms are all initialized at the same starting values, which are controlled by a `seed` (changing across the different runs). Let us, therefore, define this 100 seeds.
+To provide a detailed computational assessment, we perform estimation under the different algorithms for `Rep_Tot = 100` runs at varying initializations. For each run, the algorithms are all initialized at the same starting values, which are controlled by a `seed` (changing across the different runs). Let us, therefore, define this 100 seeds and the variance `sigma` of the Gaussian variables from which the initial values for the *β* are generated.
 
 ``` r
 Rep_Tot <- 100
-seed_rep <- c(1:8, 101:125, 127:140, 142, 144:151, 153:155, 157:188, 190:193, 195:199)
-seed_rep[28] <- 9
-seed_rep[49] <- 10
-seed_rep[10] <- 11
-seed_rep[24] <- 12
-seed_rep[92] <- 13
+seed_rep <- c(1:100)
+sigma <- 0.5
 ```
 
-Note that in the above `seed_rep` specification, some values are tuned since the one-step EM algorithm incorporating Newton-Raphson methods converged to undefined log-likelihoods in some runs. Hence, we changed some seeds to improve the behavior of this competing algorithm.
 
-Estimation under the different maximization routines
-----------------------------------------------------
+Estimation under the different routines with `R = 2` latent classes
+================
 
 We perform estimation of the parameters in the above latent class model with covariates under different computational routines (including our novel **nested EM** algorithm), and compare maximization performance along with computational efficiency.
 
-Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we focus on the model with `R = 3` latent classes.
+Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we first focus on the model with `R = 2` latent classes.
 
-#### 1. EM algorithm with Newton-Raphson methods (one-step maximization)
+#### 1. EM algorithm with Newton-Raphson methods as in Bandeen-Roche et al. (1997) (one-step maximization)
 
 Here we consider the one-step EM algorithm with Newton-Raphson methods proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407), and discussed in Section 1.1 of our paper. This requires the function `newton_em()` in the source file `LCA-Covariates-Algorithms.R` we uploaded before.
 
@@ -80,9 +75,9 @@ Let us first create the quantities to be monitored for each run. These include t
 
 ``` r
 # Create the allocation matrices for the quantities to be monitored.
-iter_NR_EM_alpha_1 <- rep(0, Rep_Tot)
-llik_NR_EM_alpha_1 <- matrix(0, Rep_Tot, 1000)
-llik_decrement_NR_EM_alpha_1 <- matrix(0, Rep_Tot, 1000)
+iter_NR_EM <- rep(0, Rep_Tot)
+llik_NR_EM <- matrix(0, Rep_Tot, 1000)
+llik_decrement_NR_EM <- matrix(0, Rep_Tot, 1000)
 
 # 1000 means that the maximum number of iterations in the EM algorithm is fixed to 1000. 
 ```
@@ -91,16 +86,19 @@ Finally, let us perform the `Rep_Tot = 100` runs of the one-step EM algorithm wi
 
 ``` r
 # Perform the algorithm.
-time_NR_EM_alpha_1 <- system.time(
-  
+time_NR_EM <- system.time(  
+
 for (rep in 1:Rep_Tot){
-fit_NR_EM <- newton_em(f_election, election, nclass = 3, seed = seed_rep[rep])
-iter_NR_EM_alpha_1[rep] <- fit_NR_EM[[1]]   
-llik_NR_EM_alpha_1[rep,] <- fit_NR_EM[[2]]
-llik_decrement_NR_EM_alpha_1[rep,] <- fit_NR_EM[[3]]}
+fit_NR_EM <- newton_em(f_election, election, nclass = n_c, seed = seed_rep[rep],sigma_init=sqrt(sigma))
+iter_NR_EM[rep] <- fit_NR_EM[[1]]	
+llik_NR_EM[rep,] <- fit_NR_EM[[2]]
+llik_decrement_NR_EM[rep,] <- fit_NR_EM[[3]]}
 
 )[3]
 ```
+
+#### 2. EM algorithm with Newton-Raphson methods as in Formann (1992) and Van der Heijden et al.(1996) (one-step maximization)
+
 
 #### 2. Re-scaled EM algorithm with Newton-Raphson methods (one-step maximization)
 
