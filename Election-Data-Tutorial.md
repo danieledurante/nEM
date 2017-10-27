@@ -51,15 +51,6 @@ f_election <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG,
                     MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
 ```
 
-To provide a detailed computational assessment, we perform estimation under the different algorithms for `Rep_Tot = 100` runs at varying initializations. For each run, the algorithms are all initialized at the same starting values, which are controlled by a `seed` (changing across the different runs). Let us, therefore, define this 100 seeds and the variance `sigma` of the Gaussian variables from which the initial values for the *β* are generated.
-
-``` r
-Rep_Tot <- 100
-seed_rep <- c(1:100)
-sigma <- 0.5
-```
-
-
 Estimation with R = 2 latent classes
 ================
 
@@ -68,7 +59,15 @@ We perform estimation of the parameters in the above latent class model with cov
 Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we first focus on the model with `R = 2` classes.
 
 ``` r
-n_c <- 3
+n_c <- 2
+```
+
+To provide a detailed computational assessment, we perform estimation under the different algorithms for `Rep_Tot = 100` runs at varying initializations. For each run, the algorithms are all initialized at the same starting values, which are controlled by a `seed` (changing across the different runs). Let us, therefore, define this 100 seeds and the variance `sigma` of the zero mean Gaussian variables from which the initial values for the *β* parameters are generated.
+
+``` r
+Rep_Tot <- 100
+seed_rep <- c(1:100)
+sigma <- 0.5
 ```
 
 ---
@@ -92,86 +91,80 @@ Finally, let us perform the `Rep_Tot = 100` runs of the one-step EM algorithm wi
 ``` r
 # Perform the algorithm.
 time_NR_EM <- system.time(  
-
 for (rep in 1:Rep_Tot){
 fit_NR_EM <- newton_em(f_election, election, nclass = n_c, seed = seed_rep[rep],sigma_init=sqrt(sigma))
 iter_NR_EM[rep] <- fit_NR_EM[[1]]	
 llik_NR_EM[rep,] <- fit_NR_EM[[2]]
 llik_decrement_NR_EM[rep,] <- fit_NR_EM[[3]]}
-
 )[3]
 ```
 
 ---
 #### 2. EM algorithm with Newton-Raphson as in Formann (1992) and Van der Heijden et al. (1996) (one-step)
 
-As discussed in the paper, the algorithm proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407) leverages a Newton-Raphson step which is based on a plug-in estimate for the Hessian of the full-model log-likelihood, instead of maximizing the expectation of the complete log-likelihood. A more formal approach implemented in [Formann (1992)] and [Van der Heijden et al. (1996)]
-
-#### 2. Re-scaled EM algorithm with Newton-Raphson (one-step)
-
-Here we consider the re-scaled version of the above one-step EM algorithm with Newton-Raphson methods. This modification is discussed in Section 1.1 of our paper, and its general version can be found in Chapter 1.5.6 of [McLachlan and Krishnan (2007)](http://onlinelibrary.wiley.com/book/10.1002/9780470191613). Also this algorithm requires the function `newton_em()` in the source file `LCA-Covariates-Algorithms.R` we uploaded before. However, now the parameter 0 &lt; *α* &lt; 1 should be modified to reduce concerns about drops in the log-likelihood sequence. Here we consider:
-
--   The case *α* = 0.75.
+As discussed in the paper, the algorithm proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407) leverages a Newton-Raphson step which is based on a plug-in estimate for the Hessian of the full-model log-likelihood, instead of maximizing the expectation of the complete log-likelihood. A more formal approach implemented in [Formann (1992)](http://www.jstor.org/stable/2290280?seq=1#page_scan_tab_contents) and [Van der Heijden et al. (1996)](https://www.jstor.org/stable/1165269?seq=1#page_scan_tab_contents), considers instead a Newton-Raphson step aimed at maximizing a quadratic approximation of the expectation for the complete log-likelihood.  Implementation of this routine requires requires the function `newton_em_Q1()` in the source file `LCA-Covariates-Algorithms.R` we uploaded before.
 
 ``` r
 # Create the allocation matrices for the quantities to be monitored.
-iter_NR_EM_alpha_0.75 <- rep(0, Rep_Tot)
-llik_NR_EM_alpha_0.75 <- matrix(0, Rep_Tot, 1000)
-llik_decrement_NR_EM_alpha_0.75 <- matrix(0, Rep_Tot, 1000)
+iter_NR_EM_Q1 <- rep(0, Rep_Tot)
+llik_NR_EM_Q1 <- matrix(0, Rep_Tot, 1000)
+llik_decrement_NR_EM_Q1 <- matrix(0, Rep_Tot, 1000)
 
 # Perform the algorithm.
-time_NR_EM_alpha_0.75 <- system.time(   
-  
+time_NR_EM_Q1 <- system.time(	
 for (rep in 1:Rep_Tot){
-fit_NR_EM <- newton_em(f_election, election, nclass = 3, seed = seed_rep[rep], alpha = 0.75)
-iter_NR_EM_alpha_0.75[rep] <- fit_NR_EM[[1]]    
-llik_NR_EM_alpha_0.75[rep,] <- fit_NR_EM[[2]]
-llik_decrement_NR_EM_alpha_0.75[rep,] <- fit_NR_EM[[3]]}
-
+fit_NR_EM_Q1 <- newton_em_Q1(f_election, election, nclass = n_c, seed = seed_rep[rep],sigma_init=sqrt(sigma))
+iter_NR_EM_Q1[rep] <- fit_NR_EM_Q1[[1]]	
+llik_NR_EM_Q1[rep,] <- fit_NR_EM_Q1[[2]]
+llik_decrement_NR_EM_Q1[rep,] <- fit_NR_EM_Q1[[3]]}
 )[3]
+
 ```
 
--   The case *α* = 0.50.
+---
+#### 3. Re-scaled EM algorithm with Newton-Raphson (one-step)
+
+Here we consider the re-scaled version of the above one-step EM algorithm with Newton-Raphson methods. This modification is discussed in Section 1.1 of our paper, and its general version can be found in Chapter 1.5.6 of [McLachlan and Krishnan (2007)](http://onlinelibrary.wiley.com/book/10.1002/9780470191613). Also this algorithm requires the function `newton_em_Q1()` in the source file `LCA-Covariates-Algorithms.R` we uploaded before. However, now the parameter 0 &lt; *α* &lt; 1 should be modified to reduce concerns about drops in the log-likelihood sequence. Here we consider, the case with *α* = 0.5.
 
 ``` r
 # Create the allocation matrices for the quantities to be monitored.
-iter_NR_EM_alpha_0.5 <- rep(0, Rep_Tot)
-llik_NR_EM_alpha_0.5 <- matrix(0, Rep_Tot, 1000)
-llik_decrement_NR_EM_alpha_0.5 <- matrix(0, Rep_Tot, 1000)
+iter_NR_EM_Q1_0.5 <- rep(0, Rep_Tot)
+llik_NR_EM_Q1_0.5 <- matrix(0, Rep_Tot, 1000)
+llik_decrement_NR_EM_Q1_0.5 <- matrix(0, Rep_Tot, 1000)
 
 # Perform the algorithm.
-time_NR_EM_alpha_0.5 <- system.time(    
-  
+time_NR_EM_Q1_0.5 <- system.time(	
 for (rep in 1:Rep_Tot){
-fit_NR_EM <- newton_em(f_election, election, nclass = 3, seed = seed_rep[rep], alpha = 0.5)
-iter_NR_EM_alpha_0.5[rep] <- fit_NR_EM[[1]] 
-llik_NR_EM_alpha_0.5[rep,] <- fit_NR_EM[[2]]
-llik_decrement_NR_EM_alpha_0.5[rep,] <- fit_NR_EM[[3]]}
-
+fit_NR_EM_Q1_0.5 <- newton_em_Q1(f_election, election, alpha=0.5,nclass = n_c, seed = seed_rep[rep],sigma_init=sqrt(sigma))
+iter_NR_EM_Q1_0.5[rep] <- fit_NR_EM_Q1_0.5[[1]]	
+llik_NR_EM_Q1_0.5[rep,] <- fit_NR_EM_Q1_0.5[[2]]
+llik_decrement_NR_EM_Q1_0.5[rep,] <- fit_NR_EM_Q1_0.5[[3]]}
 )[3]
 ```
 
--   The case *α* = 0.25.
+---
+#### 4. MM-EM algorithm based on the lower-bound routine in Bohning (1992) (one-step)
+
+All the previous algorithms are not guaranteed to provide monotone log-likelihood sequences. A more robust routine proposed by [Bohning (1992)](https://link.springer.com/article/10.1007/BF00048682) replaces the Hessian in the above Newton-Raphson updates, with a matrix that dominates it globally, thus guaranteeing monotone and more stable convergence. Although  [Bohning (1992)](https://link.springer.com/article/10.1007/BF00048682) focuses on a multinomial logistic regression with observed responses, their procedure can be adapted also to our latent class model with covariates as seen in the function `MM_em()` in the source file `LCA-Covariates-Algorithms.R`.
 
 ``` r
 # Create the allocation matrices for the quantities to be monitored.
-iter_NR_EM_alpha_0.25 <- rep(0, Rep_Tot)
-llik_NR_EM_alpha_0.25 <- matrix(0, Rep_Tot, 1000)
-llik_decrement_NR_EM_alpha_0.25 <- matrix(0, Rep_Tot, 1000)
+iter_MM <- rep(0, Rep_Tot)
+llik_MM <- matrix(0, Rep_Tot, 1000)
+llik_decrement_MM <- matrix(0, Rep_Tot, 1000)
 
 # Perform the algorithm.
-time_NR_EM_alpha_0.25 <- system.time(   
-  
+time_MM <- system.time(	 
 for (rep in 1:Rep_Tot){
-fit_NR_EM <- newton_em(f_election, election, nclass = 3, seed = seed_rep[rep], alpha = 0.25)
-iter_NR_EM_alpha_0.25[rep] <- fit_NR_EM[[1]]    
-llik_NR_EM_alpha_0.25[rep,] <- fit_NR_EM[[2]]
-llik_decrement_NR_EM_alpha_0.25[rep,] <- fit_NR_EM[[3]]}
-
+fit_MM <- MM_em(f_election, election, nclass = n_c, seed = seed_rep[rep],sigma_init=sqrt(sigma))
+iter_MM[rep] <- fit_MM[[1]]	
+llik_MM[rep,] <- fit_MM[[2]]
+llik_decrement_MM[rep,] <- fit_MM[[3]]}
 )[3]
 ```
 
-#### 3. Classical 3-step algorithm (three-step)
+---
+#### 5. Classical 3-step algorithm (three-step)
 
 Here we consider the classical three-step strategy to estimate latent class models with covariates (e.g. [Clogg 1995](https://www.iser.essex.ac.uk/research/publications/494549)). As discussed in Section 1.2 of our paper, this algorithm consists of three steps.
 
@@ -188,23 +181,21 @@ llik_3_step_classical <- rep(0, Rep_Tot)
 # Define the useful quantities to compute the full--model log-likelihood sequence.
 f_election_3_step <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
                            MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
-nclass = 3
+nclass = n_c
 mframe_election_3_step <- model.frame(f_election_3_step, election)
 y_election_3_step <- model.response(mframe_election_3_step)
 x_election_3_step <- model.matrix(f_election_3_step, mframe_election_3_step)
 R_election_3_step <- nclass
 
 # Perform the three step algorithm.
-time_3_step_classical <- system.time(
-  
+time_3_step_classical <- system.time( 
 for (rep in 1:Rep_Tot){
 #---------------------------------------------------------------------------------------------------
 # 1] Estimate a latent class model without covariates
 #---------------------------------------------------------------------------------------------------
 f_election_unconditional <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
                                   MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ 1
-fit_unconditional <- unconditional_em(f_election_unconditional, 
-                                      election, nclass = 3, seed = seed_rep[rep])
+fit_unconditional <- unconditional_em(f_election_unconditional, election, nclass = n_c, seed = seed_rep[rep])
 
 #---------------------------------------------------------------------------------------------------
 # 2] Predict the latent class of each unit via modal assignment
@@ -218,15 +209,15 @@ b <- c(t(summary(multinom(pred_class ~ election$PARTY, trace = FALSE))$coefficie
 
 # Compute the log-likelihood of the full model
 prior <- poLCA:::poLCA.updatePrior(b, x_election_3_step, R_election_3_step)
-llik_3_step_classical[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_unconditional[[3]],
+llik_3_step_classical[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_unconditional[[3]], 
                                   y_election_3_step))))}
-
 )[3]
 ```
 
-#### 4. Bias-corrected 3-step algorithm (three-step)
+---
+#### 6. Bias-corrected 3-step algorithm (three-step)
 
-Here we implement the modification proposed by [Vermunt (2010)](https://academic.oup.com/pan/article-abstract/18/4/450/1518615/Latent-Class-Modeling-with-Covariates-Two-Improved) of the classical three-step methods, in order to reduce the bias of the estimators. This strategy is discussed in Sections 1.2 and 4 of our paper, and proceed as follows:
+Here we implement the modification proposed by [Vermunt (2010)](https://academic.oup.com/pan/article-abstract/18/4/450/1518615/Latent-Class-Modeling-with-Covariates-Two-Improved) of the classical three-step methods, in order to reduce the bias of the estimators. This strategy is discussed in Sections 1.2 of our paper, and proceed as follows:
 
 1.  Estimate a latent class model without covariates `f_cheating_unconditional <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ 1`. This requires the function `unconditional_em()` (in `LCA-Covariates-Algorithms.R)`.
 2.  Using the estimates in 1, predict the latent classes *s*<sub>*i*</sub>, *i* = 1, ..., *n*, by assigning each unit *i* to the class *r* with the highest predicted probability. Compute also the classification error by applying equation (6) in [Vermunt (2010)](https://academic.oup.com/pan/article-abstract/18/4/450/1518615/Latent-Class-Modeling-with-Covariates-Two-Improved).
@@ -241,23 +232,21 @@ llik_3_step_corrected <- rep(0, Rep_Tot)
 # Define the useful quantities to compute the full--model log-likelihood sequence.
 f_election_3_step <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
                            MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
-nclass = 3
+nclass = n_c
 mframe_cheating_3_step <- model.frame(f_election_3_step, election)
 y_election_3_step <- model.response(mframe_election_3_step)
 x_election_3_step <- model.matrix(f_election_3_step, mframe_election_3_step)
 R_election_3_step <- nclass
 
 # Perform the three step algorithm.
-time_3_step_corrected <- system.time(
-  
+time_3_step_corrected <- system.time(  
 for (rep in 1:Rep_Tot){
 #---------------------------------------------------------------------------------------------------
 # 1] Estimate a latent class model without covariates
 #---------------------------------------------------------------------------------------------------
 f_election_unconditional <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
                                   MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ 1
-fit_unconditional <- unconditional_em(f_election_unconditional, 
-                                      election, nclass = 3, seed = seed_rep[rep])
+fit_unconditional <- unconditional_em(f_election_unconditional, election, nclass = n_c, seed = seed_rep[rep])
 
 #---------------------------------------------------------------------------------------------------
 # 2] Predict the latent class of each unit via modal assignment and compute the classification error
@@ -275,18 +264,17 @@ class_err <- t(class_err)
 # 3] Estimate the beta coefficients from the correction procedure in Vermunt (2010)
 #---------------------------------------------------------------------------------------------------
 f_election_3_step_correct <- cbind(pred_class) ~ PARTY
-fit_correct <- correction_em(f_election_3_step_correct, election, nclass = 3, seed = seed_rep[rep],
-                             classification_error = class_err)
+fit_correct <- correction_em(f_election_3_step_correct, election, nclass = n_c, seed = seed_rep[rep], 
+                             classification_error = class_err,sigma_init=0.1)
 
 # Compute the log-likelihood of the full model
 prior <- poLCA:::poLCA.updatePrior(fit_correct[[3]], x_election_3_step, R_election_3_step)
-llik_3_step_corrected[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_unconditional[[3]],
+llik_3_step_corrected[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_unconditional[[3]], 
                                   y_election_3_step))))}
-
 )[3]
 ```
-
-#### 5. Nested EM algorithm (one-step)
+---
+#### 7. Nested EM algorithm (one-step)
 
 We now implement our **nested EM** algorithm for improved one-step estimation of latent class models with covariates. This routine is carefully described in Section 2.2 of our paper, and leverages the recently developed Pòlya-Gamma data augmentation ([Polson et al. 2013](http://www.tandfonline.com/doi/abs/10.1080/01621459.2013.829001)). The implementation requires the function `nested_em()` in the source file `LCA-Covariates-Algorithms.R`.
 
@@ -297,20 +285,18 @@ llik_NEM <- matrix(0, Rep_Tot, 1000)
 llik_decrement_NEM <- matrix(0, Rep_Tot, 1000)
 
 # Perform the algorithm.
-time_NEM <- system.time(    
-  
+time_NEM <- system.time(	
 for (rep in 1:Rep_Tot){
-fit_NEM <- nested_em(f_election, election, nclass = 3, seed = seed_rep[rep])
-iter_NEM[rep] <- fit_NEM[[1]]   
+fit_NEM <- nested_em(f_election, election, nclass = n_c, seed = seed_rep[rep],sigma_init=sqrt(sigma))
+iter_NEM[rep] <- fit_NEM[[1]]	
 llik_NEM[rep,] <- fit_NEM[[2]]
 llik_decrement_NEM[rep,] <- fit_NEM[[3]]}
-
 )[3]
 ```
+---
+#### 8. Hybrid nested EM algorithm (one-step)
 
-#### 6. Hybrid nested EM algorithm (one-step)
-
-Here we consider a more efficient hybrid version of the **nested EM** algorithm which reaches a neighborhood of the maximum using the more stable **nested EM**, and then switches to Newton-Raphson methods to speed convergence. This routine is carefully described in Section 3.3 of our paper, and requires the function `hybrid_em()` in the source file `LCA-Covariates-Algorithms.R`.
+Here we consider a more efficient hybrid version of the **nested EM** algorithm which reaches a neighborhood of the maximum using the more stable **nested EM**, and then switches to Newton-Raphson methods to speed convergence. This routine is described in Section 2.3 of our paper, and requires the function `hybrid_em()` in the source file `LCA-Covariates-Algorithms.R`.
 
 ``` r
 # Create the allocation matrices for the quantities to be monitored.
@@ -319,21 +305,19 @@ llik_HYB <- matrix(0, Rep_Tot, 1000)
 llik_decrement_HYB <- matrix(0, Rep_Tot, 1000)
 
 # Perform the algorithm.
-time_HYB <- system.time(
-  
+time_HYB <- system.time( 
 for (rep in 1:Rep_Tot){
-fit_HYB <- hybrid_em(f_election, election, nclass = 3, seed = seed_rep[rep], epsilon = 0.1)
-iter_HYB[rep] <- fit_HYB[[1]]   
+fit_HYB <- hybrid_em(f_election, election, nclass = n_c, seed = seed_rep[rep], epsilon = 0.01,sigma_init=sqrt(sigma))
+iter_HYB[rep] <- fit_HYB[[1]]	
 llik_HYB[rep,] <- fit_HYB[[2]]
 llik_decrement_HYB[rep,] <- fit_HYB[[3]]}
-
 )[3]
 ```
 
 Performance comparison
 ----------------------
 
-Once the parameters have been estimated under the computational routines implemented above, we compare the maximization performance and the computational efficiency of the different algorithms, in order to reproduce the results in Table 2 of our paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). In particular, we consider the following quantities, computed for each run of every routine:
+Once the parameters have been estimated under the computational routines implemented above, we compare the maximization performance and the computational efficiency of the different algorithms, in order to reproduce the results in Table 1 of our paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). In particular, we consider the following quantities, computed for each run of every routine:
 
 **Maximization Performance**
 
@@ -388,10 +372,10 @@ return(output)
 }
 ```
 
-In reproducing the results in Table 2, let us first define the correct maximum log-likelihood `max_llik`, and a control quantity `delta` defining the minimum deviation from `max_llik` which is indicative of a local mode.
+In reproducing the results in Table 1, let us first define the correct maximum log-likelihood `max_llik`, and a control quantity `delta` defining the minimum deviation from `max_llik` which is indicative of a local mode.
 
 ``` r
-max_llik <- c(-10670.94)
+max_llik <- c(-11102.72)
 delta <- 0.01
 ```
 
@@ -410,8 +394,8 @@ rownames(Table_Performance) <- c("N. Decays",
                                  "Q3 N. Iterat. Converge max(Log-L)",
                                  "Averaged Time")
 
-colnames(Table_Performance) <- c("NR EM 1","NR EM 0.75","NR EM 0.5","NR EM 0.25","CLASSIC. 3-STEP",
-                                 "CORREC. 3-STEP","NESTED EM","HYBRID EM")
+colnames(Table_Performance) <- c("NR EM","NR EM Q1","NR EM Q1 0.5","MM EM",
+                                 "CLASSIC. 3-STEP","CORREC. 3-STEP","NESTED EM","HYBRID EM")
 ```
 
 We can now compute the different performance measures for our algorithms.
