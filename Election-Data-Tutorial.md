@@ -562,7 +562,7 @@ Estimation with R = 3 latent classes
 We consider now the case with `R = 3` classes. All the implementation proceeds as before, with the only difference that now `n_c <- 3` instead of `n_c <- 2`. Hence we summarize below only the code to perform maximization under the different routines. For a finer description of these routines refer to the analysis above.
 
 ``` r
-n_c <- 2
+n_c <- 3
 ```
 
 To provide a detailed computational assessment, we perform estimation under the different algorithms for `Rep_Tot = 100` runs at varying initializations. For each run, the algorithms are all initialized at the same starting values, which are controlled by a `seed` (changing across the different runs). Let us, therefore, define this 100 seeds and the variance `sigma` of the zero mean Gaussian variables from which the initial values for the *β* parameters are generated.
