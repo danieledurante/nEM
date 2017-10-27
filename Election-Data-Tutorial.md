@@ -512,7 +512,7 @@ kable(Table_Performance[,5:8])
 Reproduce the left plot in Figure 2 of the paper
 -------------------------------------------------
 
-We conclude the analysis by providing the code to obtain the right plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). This plot compares, for a selected run `sel <- 22`, the log-likelihood sequence obtained under our **nested EM** with the one provided by the standard EM algorithm with Newton-Raphson methods proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407).
+We conclude the analysis by providing the code to obtain the left plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). This plot compares, for a selected run `sel <- 8`, the log-likelihood sequences obtained under the different algorithms for one-step estimation.
 
 Let us first load some useful libraries and choose the run on which to focus.
 
@@ -554,3 +554,450 @@ plot <- ggplot(data = data_ggplot, aes(x = X1-1, y = value, group = X2)) +
 plot
 ```
 <div align="center"><a href="url"><img src="https://github.com/danieledurante/nEM/blob/master/Figures/Fig-2_1.png"  height="480" width="530" ></a></div>
+
+
+Estimation with R = 3 latent classes
+================
+
+We consider now the case with `R = 3` classes. All the implementation proceeds as before, with the only difference that now `n_c <- 3` instead of `n_c <- 2`. Hence we summarize below only the code to perform maximization under the different routines. For a finer description of these routines refer to the analysis above.
+
+``` r
+n_c <- 2
+```
+
+To provide a detailed computational assessment, we perform estimation under the different algorithms for `Rep_Tot = 100` runs at varying initializations. For each run, the algorithms are all initialized at the same starting values, which are controlled by a `seed` (changing across the different runs). Let us, therefore, define this 100 seeds and the variance `sigma` of the zero mean Gaussian variables from which the initial values for the *β* parameters are generated.
+
+``` r
+Rep_Tot <- 100
+seed_rep <- c(1:100)
+sigma <- 0.5
+```
+
+---
+#### 1. EM algorithm with Newton-Raphson as in Bandeen-Roche et al. (1997) (one-step)
+``` r
+# Create the allocation matrices for the quantities to be monitored.
+iter_NR_EM <- rep(0, Rep_Tot)
+llik_NR_EM <- matrix(0, Rep_Tot, 1000)
+llik_decrement_NR_EM <- matrix(0, Rep_Tot, 1000)
+
+# Perform the algorithm.
+time_NR_EM <- system.time(  
+for (rep in 1:Rep_Tot){
+fit_NR_EM <- newton_em(f_election, election, nclass = n_c, seed = seed_rep[rep],sigma_init=sqrt(sigma))
+iter_NR_EM[rep] <- fit_NR_EM[[1]]	
+llik_NR_EM[rep,] <- fit_NR_EM[[2]]
+llik_decrement_NR_EM[rep,] <- fit_NR_EM[[3]]}
+)[3]
+```
+
+---
+#### 2. EM algorithm with Newton-Raphson as in Formann (1992) and Van der Heijden et al. (1996) (one-step)
+``` r
+# Create the allocation matrices for the quantities to be monitored.
+iter_NR_EM_Q1 <- rep(0, Rep_Tot)
+llik_NR_EM_Q1 <- matrix(0, Rep_Tot, 1000)
+llik_decrement_NR_EM_Q1 <- matrix(0, Rep_Tot, 1000)
+
+# Perform the algorithm.
+time_NR_EM_Q1 <- system.time(	
+for (rep in 1:Rep_Tot){
+fit_NR_EM_Q1 <- newton_em_Q1(f_election, election, nclass = n_c, seed = seed_rep[rep],sigma_init=sqrt(sigma))
+iter_NR_EM_Q1[rep] <- fit_NR_EM_Q1[[1]]	
+llik_NR_EM_Q1[rep,] <- fit_NR_EM_Q1[[2]]
+llik_decrement_NR_EM_Q1[rep,] <- fit_NR_EM_Q1[[3]]}
+)[3]
+
+```
+
+---
+#### 3. Re-scaled EM algorithm with Newton-Raphson (one-step)
+``` r
+# Create the allocation matrices for the quantities to be monitored.
+iter_NR_EM_Q1_0.5 <- rep(0, Rep_Tot)
+llik_NR_EM_Q1_0.5 <- matrix(0, Rep_Tot, 1000)
+llik_decrement_NR_EM_Q1_0.5 <- matrix(0, Rep_Tot, 1000)
+
+# Perform the algorithm.
+time_NR_EM_Q1_0.5 <- system.time(	
+for (rep in 1:Rep_Tot){
+fit_NR_EM_Q1_0.5 <- newton_em_Q1(f_election, election, alpha=0.5,nclass = n_c, seed = seed_rep[rep],sigma_init=sqrt(sigma))
+iter_NR_EM_Q1_0.5[rep] <- fit_NR_EM_Q1_0.5[[1]]	
+llik_NR_EM_Q1_0.5[rep,] <- fit_NR_EM_Q1_0.5[[2]]
+llik_decrement_NR_EM_Q1_0.5[rep,] <- fit_NR_EM_Q1_0.5[[3]]}
+)[3]
+```
+
+---
+#### 4. MM-EM algorithm based on the lower-bound routine in Bohning (1992) (one-step)
+``` r
+# Create the allocation matrices for the quantities to be monitored.
+iter_MM <- rep(0, Rep_Tot)
+llik_MM <- matrix(0, Rep_Tot, 1000)
+llik_decrement_MM <- matrix(0, Rep_Tot, 1000)
+
+# Perform the algorithm.
+time_MM <- system.time(	 
+for (rep in 1:Rep_Tot){
+fit_MM <- MM_em(f_election, election, nclass = n_c, seed = seed_rep[rep],sigma_init=sqrt(sigma))
+iter_MM[rep] <- fit_MM[[1]]	
+llik_MM[rep,] <- fit_MM[[2]]
+llik_decrement_MM[rep,] <- fit_MM[[3]]}
+)[3]
+```
+
+---
+#### 5. Classical 3-step algorithm (three-step)
+``` r
+# Create the allocation matrix for the full--model log-likelihood sequence.
+llik_3_step_classical <- rep(0, Rep_Tot)
+
+# Define the useful quantities to compute the full--model log-likelihood sequence.
+f_election_3_step <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
+                           MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
+nclass = n_c
+mframe_election_3_step <- model.frame(f_election_3_step, election)
+y_election_3_step <- model.response(mframe_election_3_step)
+x_election_3_step <- model.matrix(f_election_3_step, mframe_election_3_step)
+R_election_3_step <- nclass
+
+# Perform the three step algorithm.
+time_3_step_classical <- system.time( 
+for (rep in 1:Rep_Tot){
+#---------------------------------------------------------------------------------------------------
+# 1] Estimate a latent class model without covariates
+#---------------------------------------------------------------------------------------------------
+f_election_unconditional <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
+                                  MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ 1
+fit_unconditional <- unconditional_em(f_election_unconditional, election, nclass = n_c, seed = seed_rep[rep])
+
+#---------------------------------------------------------------------------------------------------
+# 2] Predict the latent class of each unit via modal assignment
+#---------------------------------------------------------------------------------------------------
+pred_class <- apply(fit_unconditional[[4]],1, which.max)
+
+#---------------------------------------------------------------------------------------------------
+# 3] Estimate the beta coefficients from a multinomial logit with the predicted classes as responses
+#---------------------------------------------------------------------------------------------------
+b <- c(t(summary(multinom(pred_class ~ election$PARTY, trace = FALSE))$coefficients))
+
+# Compute the log-likelihood of the full model
+prior <- poLCA:::poLCA.updatePrior(b, x_election_3_step, R_election_3_step)
+llik_3_step_classical[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_unconditional[[3]], 
+                                  y_election_3_step))))}
+)[3]
+```
+
+---
+#### 6. Bias-corrected 3-step algorithm (three-step)
+``` r
+# Create the allocation matrix for the full--model log-likelihood sequence.
+llik_3_step_corrected <- rep(0, Rep_Tot)
+
+# Define the useful quantities to compute the full--model log-likelihood sequence.
+f_election_3_step <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
+                           MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
+nclass = n_c
+mframe_cheating_3_step <- model.frame(f_election_3_step, election)
+y_election_3_step <- model.response(mframe_election_3_step)
+x_election_3_step <- model.matrix(f_election_3_step, mframe_election_3_step)
+R_election_3_step <- nclass
+
+# Perform the three step algorithm.
+time_3_step_corrected <- system.time(  
+for (rep in 1:Rep_Tot){
+#---------------------------------------------------------------------------------------------------
+# 1] Estimate a latent class model without covariates
+#---------------------------------------------------------------------------------------------------
+f_election_unconditional <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
+                                  MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ 1
+fit_unconditional <- unconditional_em(f_election_unconditional, election, nclass = n_c, seed = seed_rep[rep])
+
+#---------------------------------------------------------------------------------------------------
+# 2] Predict the latent class of each unit via modal assignment and compute the classification error
+#---------------------------------------------------------------------------------------------------
+pred_class <- apply(fit_unconditional[[4]], 1, which.max)
+class_err <- matrix(0, nclass, nclass)
+rownames(class_err) <- paste("W", c(1:nclass), sep="")
+colnames(class_err) <- paste("X", c(1:nclass), sep="")
+for (r in 1:nclass){
+class_err[,r] <- (t(dummy(pred_class))%*%as.matrix(fit_unconditional[[4]][,r],
+                  dim(election)[1],1)/dim(election)[1])/fit_unconditional[[5]][1,r]}
+class_err <- t(class_err)
+
+#---------------------------------------------------------------------------------------------------
+# 3] Estimate the beta coefficients from the correction procedure in Vermunt (2010)
+#---------------------------------------------------------------------------------------------------
+f_election_3_step_correct <- cbind(pred_class) ~ PARTY
+fit_correct <- correction_em(f_election_3_step_correct, election, nclass = n_c, seed = seed_rep[rep], 
+                             classification_error = class_err,sigma_init=0.1)
+
+# Compute the log-likelihood of the full model
+prior <- poLCA:::poLCA.updatePrior(fit_correct[[3]], x_election_3_step, R_election_3_step)
+llik_3_step_corrected[rep] <- sum(log(rowSums(prior * poLCA:::poLCA.ylik.C(fit_unconditional[[3]], 
+                                  y_election_3_step))))}
+)[3]
+```
+---
+#### 7. Nested EM algorithm (one-step)
+``` r
+# Create the allocation matrices for the quantities to be monitored.
+iter_NEM <- rep(0, Rep_Tot)
+llik_NEM <- matrix(0, Rep_Tot, 1000)
+llik_decrement_NEM <- matrix(0, Rep_Tot, 1000)
+
+# Perform the algorithm.
+time_NEM <- system.time(	
+for (rep in 1:Rep_Tot){
+fit_NEM <- nested_em(f_election, election, nclass = n_c, seed = seed_rep[rep],sigma_init=sqrt(sigma))
+iter_NEM[rep] <- fit_NEM[[1]]	
+llik_NEM[rep,] <- fit_NEM[[2]]
+llik_decrement_NEM[rep,] <- fit_NEM[[3]]}
+)[3]
+```
+---
+#### 8. Hybrid nested EM algorithm (one-step)
+``` r
+# Create the allocation matrices for the quantities to be monitored.
+iter_HYB <- rep(0, Rep_Tot)
+llik_HYB <- matrix(0, Rep_Tot, 1000)
+llik_decrement_HYB <- matrix(0, Rep_Tot, 1000)
+
+# Perform the algorithm.
+time_HYB <- system.time( 
+for (rep in 1:Rep_Tot){
+fit_HYB <- hybrid_em(f_election, election, nclass = n_c, seed = seed_rep[rep], epsilon = 0.01,sigma_init=sqrt(sigma))
+iter_HYB[rep] <- fit_HYB[[1]]	
+llik_HYB[rep,] <- fit_HYB[[2]]
+llik_decrement_HYB[rep,] <- fit_HYB[[3]]}
+)[3]
+```
+
+Performance comparison
+----------------------
+As before, let us create a function which computes the measures of performance from the output of the different algorithms.
+
+``` r
+performance_algo <- function(max_loglik, n_rep, loglik_seq, loglik_decay, n_iter, time, delta){
+
+#----------------------------------------------------------------------------------------------
+# Number of runs with a drop in the log-likelihood sequence.
+#----------------------------------------------------------------------------------------------  
+n_drops <- 0
+for (rep in 1:n_rep){
+n_drops <- n_drops + (sum(loglik_decay[rep,1:n_iter[rep]]) > 0)*1}
+
+#----------------------------------------------------------------------------------------------
+# Number of runs converging to values which are not the maximum log-likelihood.
+#---------------------------------------------------------------------------------------------- 
+n_l_modes <- sum(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)
+
+#----------------------------------------------------------------------------------------------
+# Quartiles of the difference between log-likelihoods in local modes and the maximum one.
+#----------------------------------------------------------------------------------------------
+sel_modes <- which(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) > delta)
+diff_llik <- quantile(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)])[sel_modes])[2:4]
+
+#----------------------------------------------------------------------------------------------
+# Quartiles of the number of iterations to reach convergence to maximum log-likelihood.
+#----------------------------------------------------------------------------------------------
+sel_convergence <- which(abs(max_loglik - loglik_seq[cbind(1:n_rep,n_iter)]) <= delta)
+iter_convergence <- quantile(n_iter[sel_convergence])[2:4]
+
+#----------------------------------------------------------------------------------------------
+# Averaged computational time for each iteration.
+#----------------------------------------------------------------------------------------------
+averaged_time <- time/n_rep
+
+#----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------
+#Create the vector with the measures to be saved
+output<-c(n_drops, n_l_modes, diff_llik, iter_convergence, averaged_time)
+return(output)
+}
+```
+
+In reproducing the results in Table 2, let us first define the correct maximum log-likelihood `max_llik`, and a control quantity `delta` defining the minimum deviation from `max_llik` which is indicative of a local mode.
+
+``` r
+max_llik <- c(-10670.94)
+delta <- 0.01
+```
+
+Finally, let us create a matrix `Table_Performance` which contains the performance measures for the different algorithms.
+
+``` r
+Table_Performance <- matrix(NA,9,8)
+
+rownames(Table_Performance) <- c("N. Decays",
+                                 "N. Local Modes",
+                                 "Q1 Log-L in Local Modes",
+                                 "Q2 Log-L in Local Modes",
+                                 "Q3 Log-L in Local Modes",
+                                 "Q1 N. Iterat. Converge max(Log-L)",
+                                 "Q2 N. Iterat. Converge max(Log-L)",
+                                 "Q3 N. Iterat. Converge max(Log-L)",
+                                 "Averaged Time")
+
+colnames(Table_Performance) <- c("NR EM","NR EM Q1","NR EM Q1 0.5","MM EM",
+                                 "CLASSIC. 3-STEP","CORREC. 3-STEP","NESTED EM","HYBRID EM")
+```
+
+We can now compute the different performance measures for our algorithms.
+
+**1. Performance EM algorithm with Newton-Raphson as in Bandeen-Roche et al. (1997) (one-step)**
+
+``` r
+Table_Performance[,1] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM, 
+                                          llik_decrement_NR_EM, iter_NR_EM, 
+                                          time_NR_EM, delta)
+```
+
+**2. EM algorithm with Newton-Raphson as in Formann (1992) and Van der Heijden et al. (1996) (one-step)**
+
+``` r
+Table_Performance[,2] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1, 
+                                          llik_decrement_NR_EM_Q1, iter_NR_EM_Q1, 
+                                          time_NR_EM_Q1, delta)
+```
+
+**3. Performance Re-scaled EM algorithm with Newton-Raphson (one-step)**
+
+``` r
+Table_Performance[,3] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1_0.5, 
+                                          llik_decrement_NR_EM_Q1_0.5, iter_NR_EM_Q1_0.5, 
+                                          time_NR_EM_Q1_0.5, delta)
+```
+
+**4. Performance MM-EM algorithm based on the lower-bound routine in Bohning (1992) (one-step)**
+
+``` r
+Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_MM, 
+                                          llik_decrement_MM, iter_MM, 
+                                          time_MM, delta)
+```
+
+**5. Performance Classical 3-step algorithm (three-step)** 
+> As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+
+``` r
+Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classical, 
+                                          matrix(0,Rep_Tot,1000), rep(0,Rep_Tot), 
+                                          time_3_step_classical, delta)
+Table_Performance[1,5] <- NA
+```
+
+**6. Performance Bias-corrected 3-step algorithm (three-step)** 
+> Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
+
+``` r
+Table_Performance[,6] <- performance_algo(max_llik, Rep_Tot, llik_3_step_corrected, 
+                                          matrix(0,Rep_Tot,1000), rep(0,Rep_Tot), 
+                                          time_3_step_corrected, delta)
+Table_Performance[1,6] <- NA
+```
+
+**7. Performance nested EM algorithm (one-step maximization)**
+
+``` r
+Table_Performance[,7] <- performance_algo(max_llik, Rep_Tot, llik_NEM, llik_decrement_NEM, 
+                                          iter_NEM, time_NEM, delta)
+```
+
+**8. Performance hybrid nested EM algorithm (one-step maximization)**
+
+``` r
+Table_Performance[,8] <- performance_algo(max_llik, Rep_Tot, llik_HYB, llik_decrement_HYB, 
+                                          iter_HYB, time_HYB, delta)
+```
+
+Analysis of the output from the table
+-------------------------------------
+
+Let us finally visualize the performance table, which reproduces Table 2 in the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864).
+
+In particular, the maximization performance and the computational efficiency of the EM algorithm with one Newton-Raphson step, along with those of the re-scaled modifications, are:
+
+``` r
+library(knitr)
+kable(Table_Performance[,1:4])
+```
+
+|                                  |      NR EM|  NR EM Q1| NR EM Q1 0.5|       MM EM|
+|:---------------------------------|----------:|---------:|------------:|-----------:|
+|N. Decays                         |   78.00000|   37.0000|   12.0000000|   0.0000000|
+|N. Local Modes                    |   94.00000|   51.0000|   24.0000000|  27.0000000|
+|Q1 Log-L in Local Modes           |  688.22053| 1081.7374|    0.1070165|   0.3757734|
+|Q2 Log-L in Local Modes           |  830.04608| 1105.6276|    4.8945293|   0.6445302|
+|Q3 Log-L in Local Modes           | 1092.57963| 1805.7044| 1082.1905381|   3.4021476|
+|Q1 N. Iterat. Converge max(Log-L) |  135.75000|  127.0000|  128.0000000| 179.0000000|
+|Q2 N. Iterat. Converge max(Log-L) |  146.00000|  151.0000|  161.0000000| 229.0000000|
+|Q3 N. Iterat. Converge max(Log-L) |  151.00000|  192.0000|  224.5000000| 307.0000000|
+|Averaged Time                     |      0.073|     0.182|        0.230|       0.283|
+
+The maximization performance and the computational efficiency of the three-step estimation algorithms, along with those of our **nested EM** and its hybrid modification, are instead:
+
+``` r
+library(knitr)
+kable(Table_Performance[,5:8])
+```
+
+|                                  | CLASSIC. 3-STEP| CORREC. 3-STEP|   NESTED EM|   HYBRID EM|
+|:---------------------------------|---------------:|--------------:|-----------:|-----------:|
+|N. Decays                         |              NA|             NA|   0.0000000|   0.0000000|
+|N. Local Modes                    |       100.00000|      100.00000|  24.0000000|  25.0000000|
+|Q1 Log-L in Local Modes           |        42.22420|       39.10380|   0.1070165|   0.1070165|
+|Q2 Log-L in Local Modes           |        42.22421|       39.10381|   0.6445302|   0.6445302|
+|Q3 Log-L in Local Modes           |        42.23407|       39.10381|   0.6445302|   0.6445302|
+|Q1 N. Iterat. Converge max(Log-L) |              NA|             NA| 126.7500000| 117.5000000|
+|Q2 N. Iterat. Converge max(Log-L) |              NA|             NA| 171.0000000| 166.0000000|
+|Q3 N. Iterat. Converge max(Log-L) |              NA|             NA| 210.2500000| 205.5000000|
+|Averaged Time                     |           0.229|          0.212|       0.359|       0.265|
+
+Reproduce the right plot in Figure 2 of the paper
+-------------------------------------------------
+
+We conclude the analysis by providing the code to obtain the right plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). This plot compares, for a selected run `sel <- 72`, the log-likelihood sequences obtained under the different algorithms for one-step estimation.
+
+Let us first load some useful libraries and choose the run on which to focus.
+
+``` r
+library(ggplot2)
+library(reshape)
+
+sel <- 72
+```
+
+We then create a dataset `data_plot` with six columns containing the log-likelihood sequences of the one-step maximimazitation routines for the selected run.
+
+``` r
+data_plot <- cbind(llik_NR_EM[sel,],llik_NR_EM_Q1[sel,],llik_NR_EM_Q1_0.5[sel,],llik_MM[sel,],llik_NEM[sel,])
+data_plot <- data_plot[c(1:max(iter_NR_EM[sel],iter_NR_EM_Q1[sel],iter_NR_EM_Q1_0.5[sel],iter_MM[sel],iter_NEM[sel])),]
+
+for (m in which(apply(apply(data_plot,2,is.na),2,sum)>0)){
+	data_plot[which(is.na(data_plot[,m]))[1]:dim(data_plot)[1],m] <- data_plot[which(is.na(data_plot[,m]))[1]-1,m]}
+
+data_plot[c((iter_NR_EM[sel] + 1): max(iter_NEM[sel],iter_NR_EM[sel])),2] <- data_plot[iter_NR_EM[sel],2]
+data_plot <- rbind(rep(-20000,5),data_plot)
+```
+
+Finally we create the Figure.
+
+``` r
+data_ggplot <- melt(data_plot)
+data_ggplot <- as.data.frame(data_ggplot)
+data_ggplot$app <- "ELECTION DATA: Two Latent Classes"
+data_ggplot$col <- c(rep(1,dim(data_ggplot)[1]*3/5),rep(2,dim(data_ggplot)[1]*2/5))
+data_ggplot$line <- c(rep(1,dim(data_ggplot)[1]/5),rep(4,dim(data_ggplot)[1]/5),rep(5,dim(data_ggplot)[1]/5),rep(2,dim(data_ggplot)[1]/5),rep(1,dim(data_ggplot)[1]/5))
+
+plot <- ggplot(data = data_ggplot, aes(x = X1-1, y = value, group = X2)) +
+               geom_line(aes(color = as.factor(col),linetype=as.factor(line))) +
+               coord_cartesian(ylim = c(-19500, -10500), xlim = c(0, 15)) + theme_bw() +
+               labs(x = "iteration", y = expression(paste(l,"(", theta^{(t)}, ";",x,",",y,")"))) +
+               theme(legend.position="none", strip.text.x = element_text(size = 11, face = "bold")) +
+               facet_wrap(~ app)
+
+plot
+```
+<div align="center"><a href="url"><img src="https://github.com/danieledurante/nEM/blob/master/Figures/Fig-2_2.png"  height="480" width="530" ></a></div>
+
