@@ -553,5 +553,4 @@ plot <- ggplot(data = data_ggplot, aes(x = X1-1, y = value, group = X2)) +
                facet_wrap(~ app)
 plot
 ```
-
-![test](https://github.com/danieledurante/nEM/blob/master/Figures/Fig-2_1.png =250x250)
+<div align="center"><a href="url"><img src="https://github.com/danieledurante/nEM/blob/master/Figures/Fig-2_1.png"  height="480" width="530" ></a></div>
