@@ -400,39 +400,39 @@ colnames(Table_Performance) <- c("NR EM","NR EM Q1","NR EM Q1 0.5","MM EM",
 
 We can now compute the different performance measures for our algorithms.
 
-**1. Performance EM algorithm with Newton-Raphson methods *α* = 1 (one-step maximization)**
+**1. Performance EM algorithm with Newton-Raphson as in Bandeen-Roche et al. (1997) (one-step)**
 
 ``` r
-Table_Performance[,1] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_alpha_1, 
-                                          llik_decrement_NR_EM_alpha_1, iter_NR_EM_alpha_1, 
-                                          time_NR_EM_alpha_1, delta)
+Table_Performance[,1] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM, 
+                                          llik_decrement_NR_EM, iter_NR_EM, 
+                                          time_NR_EM, delta)
 ```
 
-**2.1 Performance EM algorithm with Newton-Raphson methods *α* = 0.75 (one-step maximization)**
+**2 EM algorithm with Newton-Raphson as in Formann (1992) and Van der Heijden et al. (1996) (one-step)**
 
 ``` r
-Table_Performance[,2] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_alpha_0.75, 
-                                          llik_decrement_NR_EM_alpha_0.75, iter_NR_EM_alpha_0.75, 
-                                          time_NR_EM_alpha_0.75, delta)
+Table_Performance[,2] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1, 
+                                          llik_decrement_NR_EM_Q1, iter_NR_EM_Q1, 
+                                          time_NR_EM_Q1, delta)
 ```
 
-**2.2 Performance EM algorithm with Newton-Raphson methods *α* = 0.5 (one-step maximization)**
+**3 Performance Re-scaled EM algorithm with Newton-Raphson (one-step)**
 
 ``` r
-Table_Performance[,3] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_alpha_0.5, 
-                                          llik_decrement_NR_EM_alpha_0.5, iter_NR_EM_alpha_0.5, 
-                                          time_NR_EM_alpha_0.5, delta)
+Table_Performance[,3] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1_0.5, 
+                                          llik_decrement_NR_EM_Q1_0.5, iter_NR_EM_Q1_0.5, 
+                                          time_NR_EM_Q1_0.5, delta)
 ```
 
-**2.3 Performance EM algorithm with Newton-Raphson methods *α* = 0.25 (one-step maximization)**
+**4 Performance MM-EM algorithm based on the lower-bound routine in Bohning (1992) (one-step)**
 
 ``` r
-Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_alpha_0.25, 
-                                          llik_decrement_NR_EM_alpha_0.25, iter_NR_EM_alpha_0.25, 
-                                          time_NR_EM_alpha_0.25, delta)
+Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_MM, 
+                                          llik_decrement_MM, iter_MM, 
+                                          time_MM, delta)
 ```
 
-**3 Performance Classical 3-step algorithm (three-step maximization)** 
+**5 Performance Classical 3-step algorithm (three-step)** 
 > As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
@@ -442,7 +442,7 @@ Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classic
 Table_Performance[1,5] <- NA
 ```
 
-**4 Performance Bias-corrected 3-step algorithm (three-step maximization)** 
+**6 Performance Bias-corrected 3-step algorithm (three-step)** 
 > Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
@@ -452,14 +452,14 @@ Table_Performance[,6] <- performance_algo(max_llik, Rep_Tot, llik_3_step_correct
 Table_Performance[1,6] <- NA
 ```
 
-**5 Performance nested EM algorithm (one-step maximization)**
+**7 Performance nested EM algorithm (one-step maximization)**
 
 ``` r
 Table_Performance[,7] <- performance_algo(max_llik, Rep_Tot, llik_NEM, llik_decrement_NEM, 
                                           iter_NEM, time_NEM, delta)
 ```
 
-**6 Performance hybrid nested EM algorithm (one-step maximization)**
+**8 Performance hybrid nested EM algorithm (one-step maximization)**
 
 ``` r
 Table_Performance[,8] <- performance_algo(max_llik, Rep_Tot, llik_HYB, llik_decrement_HYB, 
@@ -469,7 +469,7 @@ Table_Performance[,8] <- performance_algo(max_llik, Rep_Tot, llik_HYB, llik_decr
 Analysis of the output from the table
 -------------------------------------
 
-Let us finally visualize the performance table, which reproduces Table 2 in the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864).
+Let us finally visualize the performance table, which reproduces Table 1 in the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864).
 
 In particular, the maximization performance and the computational efficiency of the EM algorithm with one Newton-Raphson step, along with those of the re-scaled modifications, are:
 
@@ -478,17 +478,17 @@ library(knitr)
 kable(Table_Performance[,1:4])
 ```
 
-|                                   |     NR EM 1|  NR EM 0.75|   NR EM 0.5|   NR EM 0.25|
-|-----------------------------------|-----------:|-----------:|-----------:|------------:|
-| N. Decays                         |    50.00000|    27.00000|   14.000000|    5.0000000|
-| N. Local Modes                    |    60.00000|    44.00000|   26.000000|   12.0000000|
-| Q1 Log-L in Local Modes           |   463.01375|   164.12244|    9.144528|    0.6445302|
-| Q2 Log-L in Local Modes           |   770.20659|   640.60664|  330.426575|    9.1445285|
-| Q3 Log-L in Local Modes           |  1142.95098|   968.03192|  561.004121|  300.2153311|
-| Q1 N. Iterat. Converge max(Log-L) |   133.75000|   131.00000|  136.750000|  151.7500000|
-| Q2 N. Iterat. Converge max(Log-L) |   169.50000|   174.50000|  183.500000|  209.0000000|
-| Q3 N. Iterat. Converge max(Log-L) |   240.25000|   245.50000|  266.000000|  320.2500000|
-| Averaged Time                     |     0.12613|     0.17079|    0.195310|    0.2215400|
+|                                  |     NR EM|   NR EM Q1| NR EM Q1 0.5|     MM EM|
+|:---------------------------------|---------:|----------:|------------:|---------:|
+|N. Decays                         |  48.00000|   18.00000|      4.00000|   0.00000|
+|N. Local Modes                    |  60.00000|   19.00000|      3.00000|   0.00000|
+|Q1 Log-L in Local Modes           | 560.75513|  778.58745|    778.58745|        NA|
+|Q2 Log-L in Local Modes           | 645.78560|  778.58745|    778.58745|        NA|
+|Q3 Log-L in Local Modes           | 831.04045| 1373.92438|    778.58745|        NA|
+|Q1 N. Iterat. Converge max(Log-L) |  81.25000|   76.00000|     99.00000| 122.75000|
+|Q2 N. Iterat. Converge max(Log-L) | 104.00000|  106.00000|    122.00000| 139.00000|
+|Q3 N. Iterat. Converge max(Log-L) | 108.00000|  110.00000|    126.00000| 144.00000|
+|Averaged Time                     |     0.048|      0.076|        0.099|     0.098|
 
 The maximization performance and the computational efficiency of the three-step estimation algorithms, along with those of our **nested EM** and its hybrid modification, are instead:
 
@@ -497,19 +497,19 @@ library(knitr)
 kable(Table_Performance[,5:8])
 ```
 
-|                                   |  CLASSIC. 3-STEP|  CORREC. 3-STEP|    NESTED EM|    HYBRID EM|
-|-----------------------------------|----------------:|---------------:|------------:|------------:|
-| N. Decays                         |               NA|              NA|    0.0000000|    0.0000000|
-| N. Local Modes                    |        100.00000|       100.00000|    9.0000000|    9.0000000|
-| Q1 Log-L in Local Modes           |         42.22420|        39.10380|    0.1070165|    0.1070165|
-| Q2 Log-L in Local Modes           |         42.22421|        39.10381|    0.6445302|    0.6445302|
-| Q3 Log-L in Local Modes           |         42.23407|        39.10381|    6.0102387|    8.2221241|
-| Q1 N. Iterat. Converge max(Log-L) |               NA|              NA|  146.0000000|  122.0000000|
-| Q2 N. Iterat. Converge max(Log-L) |               NA|              NA|  182.0000000|  166.0000000|
-| Q3 N. Iterat. Converge max(Log-L) |               NA|              NA|  257.5000000|  249.0000000|
-| Averaged Time                     |          0.20476|         0.17436|    0.3427100|    0.2166100|
+|                                  | CLASSIC. 3-STEP| CORREC. 3-STEP| NESTED EM| HYBRID EM|
+|:---------------------------------|---------------:|--------------:|---------:|---------:|
+|N. Decays                         |              NA|             NA|   0.00000|   0.00000|
+|N. Local Modes                    |       100.00000|      100.00000|   0.00000|   0.00000|
+|Q1 Log-L in Local Modes           |        17.67188|       12.19968|        NA|        NA|
+|Q2 Log-L in Local Modes           |        17.67189|       12.19970|        NA|        NA|
+|Q3 Log-L in Local Modes           |        17.67189|       12.19970|        NA|        NA|
+|Q1 N. Iterat. Converge max(Log-L) |              NA|             NA|  93.75000|  90.00000|
+|Q2 N. Iterat. Converge max(Log-L) |              NA|             NA| 109.00000| 106.00000|
+|Q3 N. Iterat. Converge max(Log-L) |              NA|             NA| 113.00000| 110.25000|
+|Averaged Time                     |           0.074|          0.063|     0.107|     0.095|
 
-Reproduce the right plot in Figure 2 of the paper
+Reproduce the left plot in Figure 2 of the paper
 -------------------------------------------------
 
 We conclude the analysis by providing the code to obtain the right plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864). This plot compares, for a selected run `sel <- 22`, the log-likelihood sequence obtained under our **nested EM** with the one provided by the standard EM algorithm with Newton-Raphson methods proposed by [Bandeen-Roche et al. (1997)](https://www.jstor.org/stable/2965407).
@@ -520,16 +520,20 @@ Let us first load some useful libraries and choose the run on which to focus.
 library(ggplot2)
 library(reshape)
 
-sel <- 22
+sel <- 8
 ```
 
-We then create a dataset `data_plot` with two columns. The first contains the log-likelihood sequence of the **nested EM**, whereas the second comprises the one from the standard EM algorithm with Newton-Raphson methods.
+We then create a dataset `data_plot` with six columns containing the log-likelihood sequences of the one-step maximimazitation routines for the selected run.
 
 ``` r
-data_plot <- cbind(llik_NEM[sel,],llik_NR_EM_alpha_1[sel,])
-data_plot <- data_plot[c(1:max(iter_NEM[sel],iter_NR_EM_alpha_1[sel])),]
-data_plot[c((iter_NR_EM_alpha_1[sel] + 1):
-          max(iter_NEM[sel],iter_NR_EM_alpha_1[sel])),2] <- data_plot[iter_NR_EM_alpha_1[sel],2]
+data_plot <- cbind(llik_NR_EM[sel,],llik_NR_EM_Q1[sel,],llik_NR_EM_Q1_0.5[sel,],llik_MM[sel,],llik_NEM[sel,])
+data_plot <- data_plot[c(1:max(iter_NR_EM[sel],iter_NR_EM_Q1[sel],iter_NR_EM_Q1_0.5[sel],iter_MM[sel],iter_NEM[sel])),]
+
+for (m in which(apply(apply(data_plot,2,is.na),2,sum)>0)){
+	data_plot[which(is.na(data_plot[,m]))[1]:dim(data_plot)[1],m] <- data_plot[which(is.na(data_plot[,m]))[1]-1,m]}
+
+data_plot[c((iter_NR_EM[sel] + 1): max(iter_NEM[sel],iter_NR_EM[sel])),2] <- data_plot[iter_NR_EM[sel],2]
+data_plot <- rbind(rep(-20000,5),data_plot)
 ```
 
 Finally we create the Figure.
@@ -537,15 +541,16 @@ Finally we create the Figure.
 ``` r
 data_ggplot <- melt(data_plot)
 data_ggplot <- as.data.frame(data_ggplot)
-data_ggplot$app <- "ELECTION DATA"
+data_ggplot$app <- "ELECTION DATA: Two Latent Classes"
+data_ggplot$col <- c(rep(1,dim(data_ggplot)[1]*3/5),rep(2,dim(data_ggplot)[1]*2/5))
+data_ggplot$line <- c(rep(1,dim(data_ggplot)[1]/5),rep(4,dim(data_ggplot)[1]/5),rep(5,dim(data_ggplot)[1]/5),rep(2,dim(data_ggplot)[1]/5),rep(1,dim(data_ggplot)[1]/5))
 
-plot <- ggplot(data = data_ggplot, aes(x = X1, y = value, group = X2)) +
-               geom_line(aes(linetype = as.factor(X2))) +
-               coord_cartesian(ylim = c(-15000, -10600), xlim = c(0, 50)) + theme_bw() +
+plot <- ggplot(data = data_ggplot, aes(x = X1-1, y = value, group = X2)) +
+               geom_line(aes(color = as.factor(col),linetype=as.factor(line))) +
+               coord_cartesian(ylim = c(-17500, -11000), xlim = c(0, 15)) + theme_bw() +
                labs(x = "iteration", y = expression(paste(l,"(", theta^{(t)}, ";",x,",",y,")"))) +
-               theme(legend.position = "none", strip.text.x = element_text(size = 11, face = "bold")) +
+               theme(legend.position="none", strip.text.x = element_text(size = 11, face = "bold")) +
                facet_wrap(~ app)
-
 plot
 ```
 
