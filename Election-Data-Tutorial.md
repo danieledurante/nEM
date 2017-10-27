@@ -554,4 +554,4 @@ plot <- ggplot(data = data_ggplot, aes(x = X1-1, y = value, group = X2)) +
 plot
 ```
 
-![](https://github.com/danieledurante/nEM/blob/master/Application%20to%20Election%20Data/right-plot-Figure-2.png)
+![](https://github.com/danieledurante/nEM/blob/master/Figures/Fig-2_1.png)
