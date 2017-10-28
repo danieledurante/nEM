@@ -28,12 +28,12 @@ library(nnet)
 #### USEFUL FUNCTION TO COMPUTE THE CLASS PROBABILITIES ######################################
 ##############################################################################################
 ##############################################################################################
-update_probs<-function(b, x, R, n, P){
+update_probs <- function(b, x, R, n, P){
   b <- cbind(rep(0,P),matrix(b, ncol = (R - 1)))
   pred_x <- x %*% b
   p <- matrix(0,n,R)
   for (r in 1:R){
-    p[,r]<-1/rowSums(exp(pred_x-pred_x[,r]))}
+    p[,r] <- 1/rowSums(exp(pred_x-pred_x[,r]))}
   return(p)
 }
 
