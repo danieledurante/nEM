@@ -523,7 +523,7 @@ library(reshape)
 sel <- 8
 ```
 
-We then create a dataset `data_plot` with six columns containing the log-likelihood sequences of the one-step maximimazitation routines for the selected run.
+We then create a dataset `data_plot` with six columns containing the log-likelihood sequences of the one-step maximization routines for the selected run.
 
 ``` r
 data_plot <- cbind(llik_NR_EM[sel,],llik_NR_EM_Q1[sel,],llik_NR_EM_Q1_0.5[sel,],llik_MM[sel,],llik_NEM[sel,])
@@ -968,7 +968,7 @@ library(reshape)
 sel <- 72
 ```
 
-We then create a dataset `data_plot` with six columns containing the log-likelihood sequences of the one-step maximimazitation routines for the selected run.
+We then create a dataset `data_plot` with six columns containing the log-likelihood sequences of the one-step maximization routines for the selected run.
 
 ``` r
 data_plot <- cbind(llik_NR_EM[sel,],llik_NR_EM_Q1[sel,],llik_NR_EM_Q1_0.5[sel,],llik_MM[sel,],llik_NEM[sel,])
