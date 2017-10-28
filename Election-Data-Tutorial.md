@@ -408,7 +408,7 @@ Table_Performance[,1] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM,
                                           time_NR_EM, delta)
 ```
 
-**2. EM algorithm with Newton-Raphson as in Formann (1992) and Van der Heijden et al. (1996) (one-step)**
+**2. Performance EM algorithm with Newton-Raphson as in Formann (1992), Van der Heijden et al. (1996) (one-step)**
 
 ``` r
 Table_Performance[,2] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1, 
