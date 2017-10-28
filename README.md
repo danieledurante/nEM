@@ -3,7 +3,7 @@ This repository refers to the paper  [Durante, D., Canale, A. and Rigon, T. (201
 
 ## Source code
 
-The repository contains the source functions [`LCA-Covariates-Algorithms.R`](https://github.com/danieledurante/nEM/blob/master/LCA-Covariates-Algorithms.R) for the implementation of the proposed **nested EM** (and an hybrid version of the **nested EM**), along with additional algorithms routinely considered in the estimation of **latent class models with covariates**. The source functions in [`LCA-Covariates-Algorithms.R`](https://github.com/danieledurante/nEM/blob/master/LCA-Covariates-Algorithms.R) require the `R` libraries `poLCA`, `dummies` and `nnet`.
+The file [`LCA-Covariates-Algorithms.R`](https://github.com/danieledurante/nEM/blob/master/LCA-Covariates-Algorithms.R) contains the source functions for the implementation of the proposed **nested EM** (and an hybrid version of the **nested EM**), along with additional algorithms routinely considered in the estimation of **latent class models with covariates**. The source functions in [`LCA-Covariates-Algorithms.R`](https://github.com/danieledurante/nEM/blob/master/LCA-Covariates-Algorithms.R) require the `R` libraries `poLCA`, `dummies` and `nnet`.
 
 ## Empirical performance assessments
 
