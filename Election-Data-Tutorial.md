@@ -400,7 +400,7 @@ colnames(Table_Performance) <- c("NR EM","NR EM Q1","NR EM Q1 0.5","MM EM",
 
 We can now compute the different performance measures for our algorithms.
 
-**1. Performance EM algorithm with Newton-Raphson as in Bandeen-Roche et al. (1997) (one-step)**
+**1. Performance EM algorithm with Newton-Raphson as in Bandeen-Roche et al. (1997)**
 
 ``` r
 Table_Performance[,1] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM, 
@@ -408,7 +408,7 @@ Table_Performance[,1] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM,
                                           time_NR_EM, delta)
 ```
 
-**2. Performance EM algorithm with Newton-Raphson as in Formann (1992), Van der Heijden et al. (1996) (one-step)**
+**2. Performance EM algorithm with Newton-Raphson as in Formann (1992), Van der Heijden et al. (1996)**
 
 ``` r
 Table_Performance[,2] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1, 
@@ -416,7 +416,7 @@ Table_Performance[,2] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1,
                                           time_NR_EM_Q1, delta)
 ```
 
-**3. Performance Re-scaled EM algorithm with Newton-Raphson (one-step)**
+**3. Performance Re-scaled EM algorithm with Newton-Raphson**
 
 ``` r
 Table_Performance[,3] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1_0.5, 
@@ -424,7 +424,7 @@ Table_Performance[,3] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1_0.5,
                                           time_NR_EM_Q1_0.5, delta)
 ```
 
-**4. Performance MM-EM algorithm based on the lower-bound routine in Bohning (1992) (one-step)**
+**4. Performance MM-EM algorithm based on the lower-bound routine in Bohning (1992)**
 
 ``` r
 Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_MM, 
@@ -432,7 +432,7 @@ Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_MM,
                                           time_MM, delta)
 ```
 
-**5. Performance Classical 3-step algorithm (three-step)** 
+**5. Performance Classical 3-step algorithm** 
 > As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
@@ -442,7 +442,7 @@ Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classic
 Table_Performance[1,5] <- NA
 ```
 
-**6. Performance Bias-corrected 3-step algorithm (three-step)** 
+**6. Performance Bias-corrected 3-step algorithm** 
 > Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
@@ -452,14 +452,14 @@ Table_Performance[,6] <- performance_algo(max_llik, Rep_Tot, llik_3_step_correct
 Table_Performance[1,6] <- NA
 ```
 
-**7. Performance nested EM algorithm (one-step maximization)**
+**7. Performance nested EM algorithm**
 
 ``` r
 Table_Performance[,7] <- performance_algo(max_llik, Rep_Tot, llik_NEM, llik_decrement_NEM, 
                                           iter_NEM, time_NEM, delta)
 ```
 
-**8. Performance hybrid nested EM algorithm (one-step maximization)**
+**8. Performance hybrid nested EM algorithm**
 
 ``` r
 Table_Performance[,8] <- performance_algo(max_llik, Rep_Tot, llik_HYB, llik_decrement_HYB, 
@@ -845,7 +845,7 @@ colnames(Table_Performance) <- c("NR EM","NR EM Q1","NR EM Q1 0.5","MM EM",
 
 We can now compute the different performance measures for our algorithms.
 
-**1. Performance EM algorithm with Newton-Raphson as in Bandeen-Roche et al. (1997) (one-step)**
+**1. Performance EM algorithm with Newton-Raphson as in Bandeen-Roche et al. (1997)**
 
 ``` r
 Table_Performance[,1] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM, 
@@ -853,7 +853,7 @@ Table_Performance[,1] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM,
                                           time_NR_EM, delta)
 ```
 
-**2. EM algorithm with Newton-Raphson as in Formann (1992) and Van der Heijden et al. (1996) (one-step)**
+**2. Performance EM algorithm with Newton-Raphson as in Formann (1992) and Van der Heijden et al. (1996)**
 
 ``` r
 Table_Performance[,2] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1, 
@@ -861,7 +861,7 @@ Table_Performance[,2] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1,
                                           time_NR_EM_Q1, delta)
 ```
 
-**3. Performance Re-scaled EM algorithm with Newton-Raphson (one-step)**
+**3. Performance Re-scaled EM algorithm with Newton-Raphson**
 
 ``` r
 Table_Performance[,3] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1_0.5, 
@@ -869,7 +869,7 @@ Table_Performance[,3] <- performance_algo(max_llik, Rep_Tot, llik_NR_EM_Q1_0.5,
                                           time_NR_EM_Q1_0.5, delta)
 ```
 
-**4. Performance MM-EM algorithm based on the lower-bound routine in Bohning (1992) (one-step)**
+**4. Performance MM-EM algorithm based on the lower-bound routine in Bohning (1992)**
 
 ``` r
 Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_MM, 
@@ -877,7 +877,7 @@ Table_Performance[,4] <- performance_algo(max_llik, Rep_Tot, llik_MM,
                                           time_MM, delta)
 ```
 
-**5. Performance Classical 3-step algorithm (three-step)** 
+**5. Performance Classical 3-step algorithm** 
 > As discussed in the paper, since all the three-step runs converge systematically to local modes, we do not study the number of iterations to reach convergence. In fact, these routines never converge to the maximum log-likelihood. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
@@ -887,7 +887,7 @@ Table_Performance[,5] <- performance_algo(max_llik, Rep_Tot, llik_3_step_classic
 Table_Performance[1,5] <- NA
 ```
 
-**6. Performance Bias-corrected 3-step algorithm (three-step)** 
+**6. Performance Bias-corrected 3-step algorithm** 
 > Even in this case all the runs converge systematically to local modes. Therefore we do not study the number of iterations to reach convergence. Also the number of drops in the log-likelihood sequence is somewhat irrelevant to evaluate the three-step methods, since the estimation routines are based on two separate maximizations in steps 1 and 3, not directly related to the full-model log-likelihood.
 
 ``` r
@@ -897,14 +897,14 @@ Table_Performance[,6] <- performance_algo(max_llik, Rep_Tot, llik_3_step_correct
 Table_Performance[1,6] <- NA
 ```
 
-**7. Performance nested EM algorithm (one-step maximization)**
+**7. Performance nested EM algorithm**
 
 ``` r
 Table_Performance[,7] <- performance_algo(max_llik, Rep_Tot, llik_NEM, llik_decrement_NEM, 
                                           iter_NEM, time_NEM, delta)
 ```
 
-**8. Performance hybrid nested EM algorithm (one-step maximization)**
+**8. Performance hybrid nested EM algorithm**
 
 ``` r
 Table_Performance[,8] <- performance_algo(max_llik, Rep_Tot, llik_HYB, llik_decrement_HYB, 
