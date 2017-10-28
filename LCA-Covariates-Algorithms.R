@@ -58,6 +58,7 @@ update_probs <- function(b, x, R, n, P){
 #- tol: the EM algorithm stops when an additional iteration increases the log-likelihood by less than tol.
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 #- alpha: tuning parameter to rescale the updating of beta, and reduce concerns with drops in the log-likelihood sequence.
+#- sigma_init: variance of the 0 mean Gaussian from which the initial values for the beta coefficients are generated
 
 newton_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, alpha=1, sigma_init=0.5){
   #-------------------------------------------------------------------------------
@@ -226,7 +227,7 @@ newton_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, se
 #- tol: the EM algorithm stops when an additional iteration increases the log-likelihood by less than tol.
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 #- alpha: tuning parameter to rescale the updating of beta, and reduce concerns with drops in the log-likelihood sequence.
-
+#- sigma_init: variance of the 0 mean Gaussian from which the initial values for the beta coefficients are generated
 
 newton_em_Q1 <- function(formula, data, nclass = 2, maxiter = 1000, alpha=1, tol = 1e-11, seed=1, sigma_init=0.5){
   #-------------------------------------------------------------------------------
@@ -392,7 +393,7 @@ newton_em_Q1 <- function(formula, data, nclass = 2, maxiter = 1000, alpha=1, tol
 #- maxiter: maximum number of iterations in the EM to be considered.
 #- tol: the EM algorithm stops when an additional iteration increases the log-likelihood by less than tol.
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
-
+#- sigma_init: variance of the 0 mean Gaussian from which the initial values for the beta coefficients are generated
 
 MM_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, sigma_init=0.5){
   #-------------------------------------------------------------------------------
@@ -560,6 +561,7 @@ MM_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1
 #- maxiter: maximum number of iterations in the EM to be considered.
 #- tol: the EM algorithm stops when an additional iteration increases the log-likelihood by less than tol.
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
+#- sigma_init: variance of the 0 mean Gaussian from which the initial values for the beta coefficients are generated
 
 nested_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, sigma_init=0.5){
   #-------------------------------------------------------------------------------
@@ -747,6 +749,7 @@ nested_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, se
 #- tol: the EM algorithm stops when an additional iteration increases the log-likelihood by less than tol.
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 #- epsilon: the nested EM switches to Newton-Raphson when an iteration increases the log-likelihood by less than epsilon.
+#- sigma_init: variance of the 0 mean Gaussian from which the initial values for the beta coefficients are generated
 
 hybrid_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, epsilon=0.01, sigma_init=0.5){
   #-------------------------------------------------------------------------------
@@ -1100,6 +1103,7 @@ unconditional_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e
 #- tol: the EM algorithm stops when an additional iteration increases the log-likelihood by less than tol.
 #- seed: seed to be considered when initializing the beta and pi parameters from random draws.
 #- classification_error: classification error table from step 2, required for bias correction.
+#- sigma_init: variance of the 0 mean Gaussian from which the initial values for the beta coefficients are generated
 
 correction_em <- function(formula, data, nclass = 2, maxiter = 1000, tol = 1e-11, seed=1, classification_error=class_err, sigma_init=0.5){
   #-------------------------------------------------------------------------------
