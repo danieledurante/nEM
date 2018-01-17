@@ -7,7 +7,7 @@ Description
 
 This tutorial implementation focuses on assessing the maximization performance and the computational efficiency of the different algorithms for the estimation of latent class models with covariates. In particular, this assessment considers the dataset `election` from the `R` library [`poLCA`](https://www.jstatsoft.org/article/view/v042i10).
 
-The analyses reproduce those discussed in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864v4), where we propose a novel **nested EM** algorithm for improved maximum likelihood estimation of latent class models with covariates.
+The analyses reproduce those discussed in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4), where we propose a novel **nested EM** algorithm for improved maximum likelihood estimation of latent class models with covariates.
 
 Load the source functions and the data
 ================
@@ -44,7 +44,7 @@ Since the main focus is on comparing the computational performance of the differ
 election <- na.omit(election)
 ```
 
-Consistent with the analyses in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864v4), we focus on the latent class model for the `J = 12` categorical evaluations of the candidates Al Gore and George Bush, with the variable `PARTY` (affiliation party) as a covariate in the multinomial logistic regression for the latent classes. Using the syntax of the library `poLCA`, this model can be defined as follows:
+Consistent with the analyses in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4), we focus on the latent class model for the `J = 12` categorical evaluations of the candidates Al Gore and George Bush, with the variable `PARTY` (affiliation party) as a covariate in the multinomial logistic regression for the latent classes. Using the syntax of the library `poLCA`, this model can be defined as follows:
 
 ``` r
 f_election <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
@@ -317,7 +317,7 @@ llik_decrement_HYB[rep,] <- fit_HYB[[3]]}
 Performance comparison
 ----------------------
 
-Once the parameters have been estimated under the computational routines implemented above, we compare the maximization performance and the computational efficiency of the different algorithms, in order to reproduce (and extend) the results in Table 1 of our paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864v4). In particular, we consider the following quantities, computed for each run of every routine:
+Once the parameters have been estimated under the computational routines implemented above, we compare the maximization performance and the computational efficiency of the different algorithms, in order to reproduce (and extend) the results in Table 1 of our paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4). In particular, we consider the following quantities, computed for each run of every routine:
 
 **Maximization Performance**
 
@@ -469,7 +469,7 @@ Table_Performance[,8] <- performance_algo(max_llik, Rep_Tot, llik_HYB, llik_decr
 Analysis of the output from the table
 -------------------------------------
 
-Let us finally visualize the performance table, which reproduces (and extends) Table 1 in the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864v4).
+Let us finally visualize the performance table, which reproduces (and extends) Table 1 in the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4).
 
 In particular, the maximization performance and the computational efficiency of the EM algorithm with one Newton-Raphson step, along with those of the re-scaled modifications, are:
 
@@ -512,7 +512,7 @@ kable(Table_Performance[,5:8])
 Reproduce the left plot in Figure 2 of the paper
 -------------------------------------------------
 
-We conclude the analysis by providing the code to obtain the left plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864v4). This plot compares, for a selected run `sel <- 8`, the log-likelihood sequences obtained under the different algorithms for one-step estimation.
+We conclude the analysis by providing the code to obtain the left plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4). This plot compares, for a selected run `sel <- 8`, the log-likelihood sequences obtained under the different algorithms for one-step estimation.
 
 Let us first load some useful libraries and choose the run on which to focus.
 
@@ -914,7 +914,7 @@ Table_Performance[,8] <- performance_algo(max_llik, Rep_Tot, llik_HYB, llik_decr
 Analysis of the output from the table
 -------------------------------------
 
-Let us finally visualize the performance table, which reproduces (and extends) Table 2 in the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864v4).
+Let us finally visualize the performance table, which reproduces (and extends) Table 2 in the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4).
 
 In particular, the maximization performance and the computational efficiency of the EM algorithm with one Newton-Raphson step, along with those of the re-scaled modifications, are:
 
@@ -957,7 +957,7 @@ kable(Table_Performance[,5:8])
 Reproduce the right plot in Figure 2 of the paper
 -------------------------------------------------
 
-We conclude the analysis by providing the code to obtain the right plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864\]](https://arxiv.org/abs/1705.03864v4). This plot compares, for a selected run `sel <- 72`, the log-likelihood sequences obtained under the different algorithms for one-step estimation.
+We conclude the analysis by providing the code to obtain the right plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4). This plot compares, for a selected run `sel <- 72`, the log-likelihood sequences obtained under the different algorithms for one-step estimation.
 
 Let us first load some useful libraries and choose the run on which to focus.
 
