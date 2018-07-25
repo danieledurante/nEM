@@ -698,7 +698,7 @@ llik_3_step_corrected <- rep(0, Rep_Tot)
 f_election_3_step <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
                            MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
 nclass = n_c
-mframe_cheating_3_step <- model.frame(f_election_3_step, election)
+mframe_election_3_step <- model.frame(f_election_3_step, election)
 y_election_3_step <- model.response(mframe_election_3_step)
 x_election_3_step <- model.matrix(f_election_3_step, mframe_election_3_step)
 R_election_3_step <- nclass
