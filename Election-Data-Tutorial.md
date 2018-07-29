@@ -51,7 +51,7 @@ f_election <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG,
                     MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
 ```
 
-Estimation with R = 2 latent classes (not reported in the paper)
+Estimation with R = 2 latent classes (not in the paper)
 ================
 
 We perform estimation of the parameters in the above latent class model with covariates under different computational routines (including our novel **nested EM** algorithm), and compare maximization performance along with computational efficiency.
