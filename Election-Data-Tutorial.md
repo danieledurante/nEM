@@ -7,7 +7,7 @@ Description
 
 This tutorial implementation focuses on assessing the maximization performance and the computational efficiency of the different algorithms for the estimation of latent class models with covariates. In particular, this assessment considers the dataset `election` from the `R` library [`poLCA`](https://www.jstatsoft.org/article/view/v042i10).
 
-The analyses reproduce those discussed in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4), where we propose a novel **nested EM** algorithm for improved maximum likelihood estimation of latent class models with covariates.
+The analyses reproduce those discussed in Section 3 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4), where we propose a novel **nested EM** algorithm for improved maximum likelihood estimation of latent class models with covariates. Additional assessments and results not discussed in the paper are also considered.
 
 Load the source functions and the data
 ================
