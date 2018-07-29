@@ -317,13 +317,13 @@ llik_decrement_HYB[rep,] <- fit_HYB[[3]]}
 Performance comparison
 ----------------------
 
-Once the parameters have been estimated under the computational routines implemented above, we compare the maximization performance and the computational efficiency of the different algorithms, in order to reproduce (and extend) the results in Table 1 of our paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4). In particular, we consider the following quantities, computed for each run of every routine:
+Once the parameters have been estimated under the computational routines implemented above, we compare the maximization performance and the computational efficiency of the different algorithms. In particular, we consider the following quantities, computed for each run of every routine:
 
 **Maximization Performance**
 
 -   Number of runs with a drop in the log-likelihood sequence.
 -   Number of runs converging to values which are not the maximum log-likelihood.
--   For the runs reaching a local mode, we also compute the quartiles of the difference between the log-likelihoods in the local modes and the maximum one. In the paper, only the median is discussed.
+-   For the runs reaching a local mode, we also compute the quartiles of the absolute difference between the log-likelihoods in the local modes and the maximum one. In the paper, only the median is discussed.
 
 **Computational Efficiency**
 
@@ -372,7 +372,7 @@ return(output)
 }
 ```
 
-In reproducing (and extending) the results in Table 1, let us first define the correct maximum log-likelihood `max_llik`, and a control quantity `delta` defining the minimum deviation from `max_llik` which is indicative of a local mode.
+In performing our assessments, let us first define the correct maximum log-likelihood `max_llik`, and a control quantity `delta` defining the minimum deviation from `max_llik` which is indicative of a local mode.
 
 ``` r
 max_llik <- c(-11102.72)
@@ -469,7 +469,7 @@ Table_Performance[,8] <- performance_algo(max_llik, Rep_Tot, llik_HYB, llik_decr
 Analysis of the output from the table
 -------------------------------------
 
-Let us finally visualize the performance table, which reproduces (and extends) Table 1 in the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4).
+Let us finally visualize the performance table.
 
 In particular, the maximization performance and the computational efficiency of the EM algorithm with one Newton-Raphson step, along with those of the re-scaled modifications, are:
 
@@ -509,10 +509,8 @@ kable(Table_Performance[,5:8])
 |Q3 N. Iterat. Converge max(Log-L) |              NA|             NA| 113.00000| 110.25000|
 |Averaged Time                     |           0.074|          0.063|     0.107|     0.095|
 
-Reproduce the left plot in Figure 2 of the paper
--------------------------------------------------
 
-We conclude the analysis by providing the code to obtain the left plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4). This plot compares, for a selected run `sel <- 8`, the log-likelihood sequences obtained under the different algorithms for one-step estimation.
+We conclude the analysis by providing the code to obtain a plot which compares, for a selected run `sel <- 8`, the log-likelihood sequences obtained under the different algorithms for one-step estimation.
 
 Let us first load some useful libraries and choose the run on which to focus.
 
@@ -536,7 +534,7 @@ data_plot[c((iter_NR_EM[sel] + 1): max(iter_NEM[sel],iter_NR_EM[sel])),2] <- dat
 data_plot <- rbind(rep(-20000,5),data_plot)
 ```
 
-Finally we create the Figure.
+Finally we create the figure.
 
 ``` r
 data_ggplot <- melt(data_plot)
@@ -559,7 +557,7 @@ plot
 Estimation with R = 3 latent classes
 ================
 
-We consider now the case with `R = 3` classes. All the implementation proceeds as before, with the only difference that now `n_c <- 3` instead of `n_c <- 2`. Hence we summarize below only the code to perform maximization under the different routines. For a finer description of these routines refer to the analysis above.
+We consider now the case with `R = 3` classes and reproduce the the results in Table 1 of the paper [Durante, D., Canale, A. and Rigon, T. (2018). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]]. All the implementation proceeds as before, with the only difference that now `n_c <- 3` instead of `n_c <- 2`. Hence we summarize below only the code to perform maximization under the different routines. For a finer description of these routines refer to the analysis above.
 
 ``` r
 n_c <- 3
@@ -817,7 +815,7 @@ return(output)
 }
 ```
 
-In reproducing (and extending) the results in Table 2, let us first define the correct maximum log-likelihood `max_llik`, and a control quantity `delta` defining the minimum deviation from `max_llik` which is indicative of a local mode.
+In reproducing (and extending) the results in Table 1, let us first define the correct maximum log-likelihood `max_llik`, and a control quantity `delta` defining the minimum deviation from `max_llik` which is indicative of a local mode.
 
 ``` r
 max_llik <- c(-10670.94)
@@ -914,7 +912,7 @@ Table_Performance[,8] <- performance_algo(max_llik, Rep_Tot, llik_HYB, llik_decr
 Analysis of the output from the table
 -------------------------------------
 
-Let us finally visualize the performance table, which reproduces (and extends) Table 2 in the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4).
+Let us finally visualize the performance table, which reproduces (and extends) Table 1 in the paper: [Durante, D., Canale, A. and Rigon, T. (2018). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4).
 
 In particular, the maximization performance and the computational efficiency of the EM algorithm with one Newton-Raphson step, along with those of the re-scaled modifications, are:
 
@@ -954,10 +952,8 @@ kable(Table_Performance[,5:8])
 |Q3 N. Iterat. Converge max(Log-L) |              NA|             NA| 210.2500000| 205.5000000|
 |Averaged Time                     |           0.229|          0.212|       0.359|       0.265|
 
-Reproduce the right plot in Figure 2 of the paper
--------------------------------------------------
 
-We conclude the analysis by providing the code to obtain the right plot in Figure 2 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4). This plot compares, for a selected run `sel <- 72`, the log-likelihood sequences obtained under the different algorithms for one-step estimation.
+Also here, we conclude the analysis by providing the code to obtain a plot which compares, for a selected run `sel <- 72`, the log-likelihood sequences obtained under the different algorithms for one-step estimation.
 
 Let us first load some useful libraries and choose the run on which to focus.
 
@@ -981,7 +977,7 @@ data_plot[c((iter_NR_EM[sel] + 1): max(iter_NEM[sel],iter_NR_EM[sel])),2] <- dat
 data_plot <- rbind(rep(-20000,5),data_plot)
 ```
 
-Finally we create the Figure.
+Finally we create the figure.
 
 ``` r
 data_ggplot <- melt(data_plot)
