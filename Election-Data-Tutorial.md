@@ -7,7 +7,7 @@ Description
 
 This tutorial implementation focuses on assessing the maximization performance and the computational efficiency of the different algorithms for the estimation of latent class models with covariates. In particular, this assessment considers the dataset `election` from the `R` library [`poLCA`](https://www.jstatsoft.org/article/view/v042i10).
 
-The analyses reproduce those discussed in Section 3 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4), where we propose a novel **nested EM** algorithm for improved maximum likelihood estimation of latent class models with covariates. Additional assessments and results not discussed in the paper are also considered.
+The analyses reproduce those discussed in Section 3 of the paper: [Durante, D., Canale, A. and Rigon, T. (2018). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4), where we propose a novel **nested EM** algorithm for improved maximum likelihood estimation of latent class models with covariates. Additional assessments and results not discussed in the paper are also considered.
 
 Load the source functions and the data
 ================
@@ -44,19 +44,19 @@ Since the main focus is on comparing the computational performance of the differ
 election <- na.omit(election)
 ```
 
-Consistent with the analyses in Section 3.1 of the paper: [Durante, D., Canale, A. and Rigon, T. (2017). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4), we focus on the latent class model for the `J = 12` categorical evaluations of the candidates Al Gore and George Bush, with the variable `PARTY` (affiliation party) as a covariate in the multinomial logistic regression for the latent classes. Using the syntax of the library `poLCA`, this model can be defined as follows:
+Consistent with the analyses in Section 3 of the paper: [Durante, D., Canale, A. and Rigon, T. (2018). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4), we focus on the latent class model for the `J = 12` categorical evaluations of the candidates Al Gore and George Bush, with the variable `PARTY` (affiliation party) as a covariate in the multinomial logistic regression for the latent classes. Using the syntax of the library `poLCA`, this model can be defined as follows:
 
 ``` r
 f_election <- cbind(MORALG, CARESG, KNOWG, LEADG, DISHONG, INTELG, 
                     MORALB, CARESB, KNOWB, LEADB, DISHONB, INTELB) ~ PARTY
 ```
 
-Estimation with R = 2 latent classes
+Estimation with R = 2 latent classes (not reported in the paper)
 ================
 
 We perform estimation of the parameters in the above latent class model with covariates under different computational routines (including our novel **nested EM** algorithm), and compare maximization performance along with computational efficiency.
 
-Consistent with the tutorial analyses in [Linzer and Lewis (2011)](https://www.jstatsoft.org/article/view/v042i10), we first focus on the model with `R = 2` classes.
+Although the assessment with `R = 2` classes is not discussed in the paper, let us first consider this simple scenario and then move to `R = 3`.
 
 ``` r
 n_c <- 2
