@@ -557,7 +557,7 @@ plot
 Estimation with R = 3 latent classes
 ================
 
-We consider now the case with `R = 3` classes and reproduce the the results in Table 1 of the paper [Durante, D., Canale, A. and Rigon, T. (2018). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4). All the implementation proceeds as before, with the only difference that now `n_c <- 3` instead of `n_c <- 2`. Hence we summarize below only the code to perform maximization under the different routines. For a finer description of these routines refer to the analysis above.
+We consider now the case with `R = 3` classes and reproduce the the results in Table 1 of the paper [Durante, D., Canale, A. and Rigon, T. (2018). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v5\]](https://arxiv.org/abs/1705.03864v5). All the implementation proceeds as before, with the only difference that now `n_c <- 3` instead of `n_c <- 2`. Hence we summarize below only the code to perform maximization under the different routines. For a finer description of these routines refer to the analysis above.
 
 ``` r
 n_c <- 3
@@ -912,7 +912,7 @@ Table_Performance[,8] <- performance_algo(max_llik, Rep_Tot, llik_HYB, llik_decr
 Analysis of the output from the table
 -------------------------------------
 
-Let us finally visualize the performance table, which reproduces (and extends) Table 1 in the paper: [Durante, D., Canale, A. and Rigon, T. (2018). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v4\]](https://arxiv.org/abs/1705.03864v4).
+Let us finally visualize the performance table, which reproduces (and extends) Table 1 in the paper: [Durante, D., Canale, A. and Rigon, T. (2018). *A nested expectation-maximization algorithm for latent class models with covariates* \[arXiv:1705.03864v5\]](https://arxiv.org/abs/1705.03864v5).
 
 In particular, the maximization performance and the computational efficiency of the EM algorithm with one Newton-Raphson step, along with those of the re-scaled modifications, are:
 
