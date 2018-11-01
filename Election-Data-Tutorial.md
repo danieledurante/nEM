@@ -982,7 +982,7 @@ Finally we create the figure.
 ``` r
 data_ggplot <- melt(data_plot)
 data_ggplot <- as.data.frame(data_ggplot)
-data_ggplot$app <- "ELECTION DATA: Two Latent Classes"
+data_ggplot$app <- "ELECTION DATA: Three Latent Classes"
 data_ggplot$col <- c(rep(1,dim(data_ggplot)[1]*3/5),rep(2,dim(data_ggplot)[1]*2/5))
 data_ggplot$line <- c(rep(1,dim(data_ggplot)[1]/5),rep(4,dim(data_ggplot)[1]/5),rep(5,dim(data_ggplot)[1]/5),rep(2,dim(data_ggplot)[1]/5),rep(1,dim(data_ggplot)[1]/5))
 
