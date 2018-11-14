@@ -145,7 +145,7 @@ llik_decrement_NR_EM_Q1_0.5[rep,] <- fit_NR_EM_Q1_0.5[[3]]}
 ---
 #### 4. MM-EM algorithm based on the lower-bound routine in Bohning (1992) (one-step)
 
-All the previous algorithms are not guaranteed to provide monotone log-likelihood sequences. A more robust routine proposed by [Bohning (1992)](https://link.springer.com/article/10.1007/BF00048682) replaces the Hessian in the above Newton-Raphson updates, with a matrix that dominates it globally, thus guaranteeing monotone and more stable convergence. Although  [Bohning (1992)](https://link.springer.com/article/10.1007/BF00048682) focuses on a multinomial logistic regression with observed responses, their procedure can be adapted also to our latent class model with covariates as seen in the function `MM_em()` in the source file `LCA-Covariates-Algorithms.R`.
+All the previous algorithms are not guaranteed to provide monotone log-likelihood sequences. A more robust routine proposed by [Bohning (1992)](https://link.springer.com/article/10.1007/BF00048682) replaces the Hessian in the above Newton-Raphson updates, with a matrix that dominates it globally, thus guaranteeing monotone and more stable convergence. Although  [Bohning (1992)](https://link.springer.com/article/10.1007/BF00048682) focuses on a multinomial logistic regression with observed responses, his procedure can be adapted also to our latent class model with covariates as seen in the function `MM_em()` in the source file `LCA-Covariates-Algorithms.R`.
 
 ``` r
 # Create the allocation matrices for the quantities to be monitored.
